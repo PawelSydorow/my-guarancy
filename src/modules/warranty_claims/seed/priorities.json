@@ -1,0 +1,6 @@
+[
+  { "value": "niski", "label": "Niski" },
+  { "value": "sredni", "label": "Sredni" },
+  { "value": "wysoki", "label": "Wysoki" },
+  { "value": "krytyczny", "label": "Krytyczny" }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "seedKey": "hydromax-a",
+    "projectKey": "osiedle-polnoc-a",
+    "name": "HydroMax Instalacje",
+    "address": "ul. Wodna 12, 61-001 Poznan",
+    "email": "serwis@hydromax.example",
+    "phone": "+48 500 200 100",
+    "contactPerson": "Jan Nowak"
+  },
+  {
+    "seedKey": "bruk-system-a",
+    "projectKey": "osiedle-polnoc-a",
+    "name": "Bruk System",
+    "address": "ul. Kostki 4, 60-312 Poznan",
+    "email": "kontakt@bruksystem.example",
+    "phone": "+48 500 300 200",
+    "contactPerson": "Agnieszka Kaczmarek"
+  },
+  {
+    "seedKey": "elektro-b",
+    "projectKey": "osiedle-polnoc-b",
+    "name": "Elektro Serwis B",
+    "address": "ul. Iskry 9, 62-081 Przezmierowo",
+    "email": "awarie@elektrob.example",
+    "phone": "+48 500 111 222",
+    "contactPerson": "Marek Szymanski"
+  },
+  {
+    "seedKey": "fasada-zielona",
+    "projectKey": "kameralna-zielona",
+    "name": "Fasada Zielona",
+    "address": "ul. Lesna 77, 62-050 Mosina",
+    "email": "biuro@fasadazielona.example",
+    "phone": "+48 500 444 333",
+    "contactPerson": "Olga Piotrowska"
+  }
+]

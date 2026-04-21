@@ -1,0 +1,17 @@
+[
+  {
+    "seedKey": "osiedle-polnoc-a",
+    "name": "Osiedle Polnoc - Etap A",
+    "code": "OPA-001"
+  },
+  {
+    "seedKey": "osiedle-polnoc-b",
+    "name": "Osiedle Polnoc - Etap B",
+    "code": "OPB-002"
+  },
+  {
+    "seedKey": "kameralna-zielona",
+    "name": "Kameralna Zielona",
+    "code": "KZ-003"
+  }
+]
