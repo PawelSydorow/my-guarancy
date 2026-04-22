@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { DM_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { bootstrap } from '@/bootstrap'
 import { AppProviders } from '@/components/AppProviders'
@@ -7,11 +8,22 @@ import { AppProviders } from '@/components/AppProviders'
 bootstrap()
 import { detectLocale, loadDictionary } from '@open-mercato/shared/lib/i18n/server'
 
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-bremer-sans',
+})
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-bremer-mono',
+})
+
 export const metadata: Metadata = {
-  title: 'Open Mercato',
-  description: 'AI-supportive, modular ERP foundation for product & service companies',
+  title: 'BREMER Warranty Hub',
+  description: 'BREMER warranty operations workspace for claims intake, coordination, and delivery follow-up.',
   icons: {
-    icon: '/open-mercato.svg',
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
   },
 }
 
@@ -44,7 +56,11 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased" suppressHydrationWarning data-gramm="false">
+      <body
+        className={`${dmSans.variable} ${jetBrainsMono.variable} antialiased`}
+        suppressHydrationWarning
+        data-gramm="false"
+      >
         <AppProviders locale={locale} dict={dict} demoModeEnabled={demoModeEnabled} noticeBarsEnabled={noticeBarsEnabled}>
           {children}
         </AppProviders>

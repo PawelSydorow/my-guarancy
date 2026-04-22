@@ -54,7 +54,7 @@ export function GlobalNoticeBars({ demoModeEnabled }: { demoModeEnabled: boolean
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[70] flex flex-col items-center gap-3 px-4">
+    <div className="global-notice-bars pointer-events-none fixed inset-x-0 bottom-4 z-[70] flex flex-col items-center gap-3 px-4">
       {showDemoNotice ? (
         <div className="pointer-events-auto w-full max-w-4xl rounded-lg border border-amber-200 bg-amber-50/90 p-4 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-amber-50/70 dark:border-amber-900/70 dark:bg-amber-950/40">
           <div className="flex items-start gap-3">

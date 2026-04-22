@@ -50,16 +50,16 @@ function toComboboxOptions(items: LookupOption[]) {
 }
 
 const STATUS_SEGMENT_CLASSES: Record<string, string> = {
-  oczekuje: 'border-slate-200 bg-slate-50 text-slate-700',
-  w_trakcie: 'border-amber-200 bg-amber-50 text-amber-800',
+  oczekuje: 'border-border bg-muted text-muted-foreground',
+  w_trakcie: 'border-primary/25 bg-primary/10 text-primary',
   zakonczone: 'border-emerald-200 bg-emerald-50 text-emerald-700',
 }
 
 const PRIORITY_SEGMENT_CLASSES: Record<string, string> = {
-  niski: 'border-slate-200 bg-slate-50 text-slate-700',
-  sredni: 'border-sky-200 bg-sky-50 text-sky-700',
-  wysoki: 'border-amber-200 bg-amber-50 text-amber-800',
-  krytyczny: 'border-red-200 bg-red-50 text-red-700',
+  niski: 'border-border bg-muted text-muted-foreground',
+  sredni: 'border-primary/20 bg-primary/8 text-primary',
+  wysoki: 'border-[#fc3c00]/20 bg-[#fff0eb] text-[#982400]',
+  krytyczny: 'border-destructive/30 bg-destructive/10 text-destructive',
 }
 
 function SegmentedSelectField({
@@ -85,8 +85,8 @@ function SegmentedSelectField({
             key={option.value}
             type="button"
             className={[
-              'inline-flex h-9 shrink-0 items-center rounded-md border px-3 text-sm font-medium transition-colors',
-              isActive ? `${toneClass} shadow-sm` : 'border-border bg-background text-muted-foreground hover:text-foreground',
+              'inline-flex min-h-11 shrink-0 items-center rounded-none border px-3 text-sm font-semibold transition-colors',
+              isActive ? `${toneClass} shadow-sm` : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:text-foreground',
             ].join(' ')}
             onClick={() => onChange(option.value)}
           >
@@ -295,7 +295,7 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
           type="text"
           readOnly
           value={typeof value === 'string' && value.trim() ? value : 'Nadany automatycznie po zapisie'}
-          className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+          className="w-full rounded-none border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
         />
       ),
     },

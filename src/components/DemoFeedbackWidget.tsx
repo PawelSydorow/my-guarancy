@@ -178,8 +178,8 @@ export function DemoFeedbackWidget({ demoModeEnabled }: { demoModeEnabled: boole
       onClick={() => { setOpen(true); if (submitState === 'sent') resetForm() }}
       className="fixed bottom-6 right-6 z-[60] flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-xl transition-all hover:scale-105 hover:shadow-2xl active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-[subtle-bounce_2s_ease-in-out_infinite]"
       style={{
-        background: 'linear-gradient(135deg, #B4F372 0%, #EEFB63 50%, #BC9AFF 100%)',
-        color: '#1B1B1B',
+        background: 'linear-gradient(135deg, #0067ff 0%, #0053cc 55%, #01011a 100%)',
+        color: '#ffffff',
       }}
       aria-label={t('demoFeedback.button.ariaLabel', 'Open feedback form')}
     >
@@ -199,12 +199,12 @@ export function DemoFeedbackWidget({ demoModeEnabled }: { demoModeEnabled: boole
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md" onKeyDown={handleKeyDown}>
           <DialogHeader className="items-center gap-3">
-            <Image alt="Open Mercato" src="/open-mercato.svg" width={48} height={48} />
+            <Image alt="BREMER Warranty Hub" src="/open-mercato.svg" width={48} height={48} />
             <DialogTitle className="text-center text-xl">
-              {t('demoFeedback.dialog.title', 'Talk to Open Mercato team')}
+              {t('demoFeedback.dialog.title', 'Contact the BREMER project team')}
             </DialogTitle>
             <DialogDescription className="text-center text-balance leading-relaxed">
-              {t('demoFeedback.dialog.description', 'What you just saw is ~80% of a real system.\nLet\u2019s talk about how to turn this into a production-ready solution in weeks, not months.')}
+              {t('demoFeedback.dialog.description', 'Share feedback, ask implementation questions, or request adjustments for the BREMER warranty workflow.')}
             </DialogDescription>
           </DialogHeader>
 
@@ -330,8 +330,8 @@ export function DemoFeedbackWidget({ demoModeEnabled }: { demoModeEnabled: boole
                 disabled={submitState === 'sending'}
                 onClick={handleSubmit}
                 style={{
-                  background: 'linear-gradient(135deg, #B4F372 0%, #EEFB63 50%, #BC9AFF 100%)',
-                  color: '#1B1B1B',
+                  background: 'linear-gradient(135deg, #0067ff 0%, #0053cc 55%, #01011a 100%)',
+                  color: '#ffffff',
                 }}
               >
                 {submitState === 'sending' ? (
