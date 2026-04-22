@@ -3,8 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import WarrantyClaimForm from './WarrantyClaimForm'
 
 const fetchCrudListMock = jest.fn()
-const attachmentsSectionMock = jest.fn(({ recordId }: { recordId: string | null }) => (
-  <div data-testid="attachments-section">{recordId ?? 'save-first'}</div>
+const createCrudMock = jest.fn()
+const updateCrudMock = jest.fn()
+const attachmentsSectionMock = jest.fn(({ entityId, recordId }: { entityId: string; recordId: string | null }) => (
+  <div data-testid="attachments-section">{`${entityId}:${recordId ?? 'missing-record'}`}</div>
 ))
 
 jest.mock('next/navigation', () => ({
@@ -29,9 +31,9 @@ jest.mock('@open-mercato/ui/backend/utils/flash', () => ({
 }))
 
 jest.mock('@open-mercato/ui/backend/utils/crud', () => ({
-  createCrud: jest.fn(),
+  createCrud: (...args: unknown[]) => createCrudMock(...args),
   fetchCrudList: (...args: unknown[]) => fetchCrudListMock(...args),
-  updateCrud: jest.fn(),
+  updateCrud: (...args: unknown[]) => updateCrudMock(...args),
   deleteCrud: jest.fn(),
 }))
 
@@ -40,6 +42,7 @@ jest.mock('@open-mercato/ui/backend/CrudForm', () => ({
     title: string
     groups?: Array<{ id: string; title?: string; component?: (props: { values?: Record<string, unknown> }) => React.ReactNode }>
     initialValues?: Record<string, unknown>
+    onSubmit?: (values: Record<string, unknown>) => Promise<void>
   }) => (
     <div data-testid="crud-form">
       <div>{props.title}</div>
@@ -49,6 +52,14 @@ jest.mock('@open-mercato/ui/backend/CrudForm', () => ({
           {group.component ? group.component({ values: props.initialValues ?? {} }) : null}
         </section>
       ))}
+      <button
+        type="button"
+        onClick={() => {
+          void props.onSubmit?.((props.initialValues ?? {}) as Record<string, unknown>)
+        }}
+      >
+        submit
+      </button>
     </div>
   ),
 }))
@@ -64,6 +75,8 @@ describe('WarrantyClaimForm attachments', () => {
   beforeEach(() => {
     attachmentsSectionMock.mockClear()
     fetchCrudListMock.mockReset()
+    createCrudMock.mockReset()
+    updateCrudMock.mockReset()
 
     global.fetch = jest.fn(async (input: string | URL | Request) => {
       const url = String(input)
@@ -80,16 +93,22 @@ describe('WarrantyClaimForm attachments', () => {
       if (url.startsWith('/api/warranty_claims/subcontractors')) {
         return mockJsonResponse({ items: [] })
       }
+      if (url.startsWith('/api/attachments?')) {
+        return mockJsonResponse({ items: [] })
+      }
+      if (url === '/api/attachments/transfer') {
+        return mockJsonResponse({ ok: true, updated: 0 })
+      }
       return mockJsonResponse({})
     }) as jest.Mock
   })
 
-  it('shows save-first attachments state on create', async () => {
+  it('uses temporary attachments library on create', async () => {
     render(<WarrantyClaimForm mode="create" />)
 
     await waitFor(() => {
       expect(screen.queryByText('Zalaczniki')).not.toBeNull()
-      expect(screen.getByTestId('attachments-section').textContent).toContain('save-first')
+      expect(screen.getByTestId('attachments-section').textContent).toContain('attachments:library:warranty-claim-create:')
     })
   })
 
@@ -128,7 +147,72 @@ describe('WarrantyClaimForm attachments', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Zalaczniki')).not.toBeNull()
-      expect(screen.getByTestId('attachments-section').textContent).toContain('claim-1')
+      expect(screen.getByTestId('attachments-section').textContent).toContain('warranty_claims:claim:claim-1')
+    })
+  })
+
+  it('transfers temporary attachments after create', async () => {
+    createCrudMock.mockResolvedValue({
+      result: { id: 'claim-1' },
+    })
+
+    global.fetch = jest.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input)
+      if (url.startsWith('/api/warranty_claims/lookups')) {
+        return mockJsonResponse({
+          projects: [],
+          users: [],
+          statuses: [],
+          priorities: [],
+          categories: [],
+          subcontractors: [],
+        })
+      }
+      if (url.startsWith('/api/attachments?')) {
+        return mockJsonResponse({
+          items: [{ id: '11111111-1111-4111-8111-111111111111' }],
+        })
+      }
+      if (url === '/api/attachments/transfer') {
+        expect(init?.method).toBe('POST')
+        const body = JSON.parse(String(init?.body ?? '{}')) as {
+          sourceEntityId?: string
+          targetEntityId?: string
+          fromRecordId?: string
+          toRecordId?: string
+          attachmentIds?: string[]
+        }
+        expect(body.sourceEntityId).toBe('attachments:library')
+        expect(body.targetEntityId).toBe('warranty_claims:claim')
+        expect(body.toRecordId).toBe('claim-1')
+        expect(body.attachmentIds).toEqual(['11111111-1111-4111-8111-111111111111'])
+        expect(body.fromRecordId).toContain('warranty-claim-create:')
+        return mockJsonResponse({ ok: true, updated: 1 })
+      }
+      if (url.startsWith('/api/warranty_claims/subcontractors')) {
+        return mockJsonResponse({ items: [] })
+      }
+      return mockJsonResponse({})
+    }) as jest.Mock
+
+    render(<WarrantyClaimForm mode="create" />)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Zalaczniki')).not.toBeNull()
+    })
+
+    screen.getByRole('button', { name: 'submit' }).click()
+
+    await waitFor(() => {
+      expect(createCrudMock).toHaveBeenCalled()
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/attachments?entityId=attachments%3Alibrary&recordId=warranty-claim-create%3A'),
+        expect.objectContaining({ credentials: 'include' }),
+      )
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/attachments/transfer',
+        expect.objectContaining({ method: 'POST', credentials: 'include' }),
+      )
     })
   })
 })

@@ -11,6 +11,8 @@ import type { LookupBundle, LookupOption, WarrantyClaimApiRecord, WarrantyClaimR
 import { normalizeWarrantyClaimRecord } from '../types'
 import { WARRANTY_CLAIM_ENTITY_ID } from '../lib/constants'
 
+const ATTACHMENTS_LIBRARY_ENTITY_ID = 'attachments:library'
+
 type FormValues = {
   id?: string
   project_id: string
@@ -57,6 +59,41 @@ function HiddenInitialFocusTarget() {
   )
 }
 
+function createDraftAttachmentRecordId() {
+  const randomPart = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+  return `warranty-claim-create:${randomPart}`
+}
+
+async function fetchAttachmentIds(entityId: string, recordId: string) {
+  const params = new URLSearchParams({ entityId, recordId })
+  const response = await fetch(`/api/attachments?${params.toString()}`, { credentials: 'include' })
+  if (!response.ok) throw new Error('Nie udalo sie pobrac listy zalacznikow')
+  const payload = await response.json() as { items?: Array<{ id?: string | null }> }
+  return (payload.items ?? [])
+    .map((item) => (typeof item.id === 'string' ? item.id : null))
+    .filter((id): id is string => Boolean(id))
+}
+
+async function transferDraftAttachments(draftRecordId: string, claimId: string) {
+  const attachmentIds = await fetchAttachmentIds(ATTACHMENTS_LIBRARY_ENTITY_ID, draftRecordId)
+  if (!attachmentIds.length) return
+  const response = await fetch('/api/attachments/transfer', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      sourceEntityId: ATTACHMENTS_LIBRARY_ENTITY_ID,
+      targetEntityId: WARRANTY_CLAIM_ENTITY_ID,
+      attachmentIds,
+      fromRecordId: draftRecordId,
+      toRecordId: claimId,
+    }),
+  })
+  if (!response.ok) throw new Error('Nie udalo sie przypiac zalacznikow do zgloszenia')
+}
+
 async function fetchLookupItems(endpoint: string, query = '', extraParams?: Record<string, string | null | undefined>) {
   const params = new URLSearchParams()
   if (query.trim()) params.set('q', query.trim())
@@ -71,6 +108,7 @@ async function fetchLookupItems(endpoint: string, query = '', extraParams?: Reco
 
 export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 'edit'; claimId?: string }) {
   const router = useRouter()
+  const [draftAttachmentRecordId] = React.useState(createDraftAttachmentRecordId)
   const [lookups, setLookups] = React.useState<LookupBundle | null>(null)
   const [subcontractors, setSubcontractors] = React.useState<LookupOption[]>([])
   const [subcontractorsLoading, setSubcontractorsLoading] = React.useState(false)
@@ -346,17 +384,19 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
       component: () => (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            Pliki zapisuja sie od razu po dodaniu lub usunieciu. Zmiany formularza nadal wymagaja osobnego zapisu.
+            {mode === 'create'
+              ? 'Pliki zapisuja sie tymczasowo od razu po dodaniu lub usunieciu. Po utworzeniu zgloszenia zostana przypiete do rekordu.'
+              : 'Pliki zapisuja sie od razu po dodaniu lub usunieciu. Zmiany formularza nadal wymagaja osobnego zapisu.'}
           </p>
           <AttachmentsSection
-            entityId={WARRANTY_CLAIM_ENTITY_ID}
-            recordId={mode === 'edit' ? claimId ?? null : null}
+            entityId={mode === 'create' ? ATTACHMENTS_LIBRARY_ENTITY_ID : WARRANTY_CLAIM_ENTITY_ID}
+            recordId={mode === 'create' ? draftAttachmentRecordId : claimId ?? null}
             showHeader={false}
           />
         </div>
       ),
     },
-  ], [claimId, claimRecord, mode, subcontractors])
+  ], [claimId, claimRecord, draftAttachmentRecordId, mode, subcontractors])
 
   const handleSubmit = React.useCallback(async (values: FormValues) => {
     const payload = {
@@ -366,11 +406,14 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
       resolved_at: values.resolved_at || null,
     }
     if (mode === 'create') {
-      await createCrud('warranty_claims/claims', payload)
+      const created = await createCrud<WarrantyClaimApiRecord>('warranty_claims/claims', payload)
+      const createdId = typeof created.result?.id === 'string' ? created.result.id : null
+      if (!createdId) throw new Error('Nie udalo sie odczytac identyfikatora nowego zgloszenia')
+      await transferDraftAttachments(draftAttachmentRecordId, createdId)
       return
     }
     await updateCrud('warranty_claims/claims', payload)
-  }, [mode])
+  }, [draftAttachmentRecordId, mode])
 
   if (error) {
     return (
