@@ -49,6 +49,55 @@ function toComboboxOptions(items: LookupOption[]) {
   }))
 }
 
+const STATUS_SEGMENT_CLASSES: Record<string, string> = {
+  oczekuje: 'border-slate-200 bg-slate-50 text-slate-700',
+  w_trakcie: 'border-amber-200 bg-amber-50 text-amber-800',
+  zakonczone: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+}
+
+const PRIORITY_SEGMENT_CLASSES: Record<string, string> = {
+  niski: 'border-slate-200 bg-slate-50 text-slate-700',
+  sredni: 'border-sky-200 bg-sky-50 text-sky-700',
+  wysoki: 'border-amber-200 bg-amber-50 text-amber-800',
+  krytyczny: 'border-red-200 bg-red-50 text-red-700',
+}
+
+function SegmentedSelectField({
+  value,
+  options,
+  onChange,
+  colorMap,
+}: {
+  value?: unknown
+  options: CrudFieldOption[]
+  onChange: (value: string | undefined) => void
+  colorMap?: Record<string, string>
+}) {
+  const selectedValue = typeof value === 'string' ? value : ''
+
+  return (
+    <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+      {options.map((option) => {
+        const isActive = option.value === selectedValue
+        const toneClass = colorMap?.[option.value] ?? 'border-slate-200 bg-slate-50 text-slate-700'
+        return (
+          <button
+            key={option.value}
+            type="button"
+            className={[
+              'inline-flex h-9 shrink-0 items-center rounded-md border px-3 text-sm font-medium transition-colors',
+              isActive ? `${toneClass} shadow-sm` : 'border-border bg-background text-muted-foreground hover:text-foreground',
+            ].join(' ')}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function HiddenInitialFocusTarget() {
   return (
     <button
@@ -283,26 +332,37 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
     {
       id: 'status_key',
       label: 'Status',
-      type: 'combobox',
+      type: 'custom',
       required: true,
-      options: toFieldOptions(lookups?.statuses ?? []),
-      allowCustomValues: false,
+      component: ({ value, setValue }) => (
+        <SegmentedSelectField
+          value={value}
+          options={toFieldOptions(lookups?.statuses ?? [])}
+          onChange={(nextValue) => setValue(nextValue)}
+          colorMap={STATUS_SEGMENT_CLASSES}
+        />
+      ),
     },
     {
       id: 'priority_key',
       label: 'Pilnosc',
-      type: 'combobox',
+      type: 'custom',
       required: true,
-      options: toFieldOptions(lookups?.priorities ?? []),
-      allowCustomValues: false,
+      component: ({ value, setValue }) => (
+        <SegmentedSelectField
+          value={value}
+          options={toFieldOptions(lookups?.priorities ?? [])}
+          onChange={(nextValue) => setValue(nextValue)}
+          colorMap={PRIORITY_SEGMENT_CLASSES}
+        />
+      ),
     },
     {
       id: 'category_key',
       label: 'Kategoria',
-      type: 'combobox',
+      type: 'select',
       required: true,
       options: toFieldOptions(lookups?.categories ?? []),
-      allowCustomValues: false,
     },
     { id: 'issue_description', label: 'Opis usterki', type: 'textarea', required: true },
     { id: 'location_text', label: 'Lokalizacja', type: 'text', required: true },

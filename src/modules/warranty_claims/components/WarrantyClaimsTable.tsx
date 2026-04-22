@@ -1,7 +1,7 @@
 "use client"
 import * as React from 'react'
 import Link from 'next/link'
-import { Circle, Clock3, CheckCircle2, Minus, AlertTriangle, Flame } from 'lucide-react'
+import { Circle, Clock3, CheckCircle2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { DataTable } from '@open-mercato/ui/backend/DataTable'
@@ -39,29 +39,6 @@ const WARRANTY_STATUS_BADGE_MAP: EnumBadgeMap = {
     label: 'Zakonczone',
     className: 'border-emerald-200 text-emerald-700 bg-emerald-50',
     icon: <CheckCircle2 className="size-3" />,
-  },
-}
-
-const WARRANTY_PRIORITY_BADGE_MAP: EnumBadgeMap = {
-  niski: {
-    label: 'Niski',
-    className: 'border-slate-200 text-slate-700 bg-slate-50',
-    icon: <Minus className="size-3" />,
-  },
-  sredni: {
-    label: 'Sredni',
-    className: 'border-sky-200 text-sky-700 bg-sky-50',
-    icon: <Circle className="size-3" />,
-  },
-  wysoki: {
-    label: 'Wysoki',
-    className: 'border-amber-200 text-amber-800 bg-amber-50',
-    icon: <AlertTriangle className="size-3" />,
-  },
-  krytyczny: {
-    label: 'Krytyczny',
-    className: 'border-red-200 text-red-700 bg-red-50',
-    icon: <Flame className="size-3" />,
   },
 }
 
@@ -226,64 +203,37 @@ export default function WarrantyClaimsTable() {
       meta: { priority: 1 },
       cell: ({ row }) => row.original.claim_number_formatted || row.original.claim_number,
     },
-    { accessorKey: 'title', header: 'Tytul', meta: { priority: 1 } },
-    { accessorKey: 'bas_number', header: 'BAS', meta: { priority: 2 } },
     {
       accessorKey: 'project_id',
       header: 'Projekt',
-      meta: { priority: 2, maxWidth: '320px' },
+      meta: { priority: 1, maxWidth: '320px' },
       cell: ({ row }) => projectMap.get(row.original.project_id) ?? row.original.project_id,
+    },
+    { accessorKey: 'title', header: 'Tytul', meta: { priority: 1 } },
+    {
+      accessorKey: 'category_key',
+      header: 'Kategoria',
+      meta: { priority: 1 },
+      cell: ({ row }) => (
+        <span className="inline-flex min-h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+          {categoryMap.get(row.original.category_key) ?? row.original.category_key}
+        </span>
+      ),
     },
     {
       accessorKey: 'status_key',
       header: 'Status',
-      meta: { priority: 2 },
+      meta: { priority: 1 },
       cell: ({ row }) => (
         <EnumBadge
           value={row.original.status_key}
           map={WARRANTY_STATUS_BADGE_MAP}
-          fallback="—"
+          fallback="â€”"
         />
       ),
     },
-    {
-      accessorKey: 'priority_key',
-      header: 'Pilnosc',
-      meta: { priority: 3 },
-      cell: ({ row }) => (
-        <EnumBadge
-          value={row.original.priority_key}
-          map={WARRANTY_PRIORITY_BADGE_MAP}
-          fallback="—"
-        />
-      ),
-    },
-    {
-      accessorKey: 'category_key',
-      header: 'Kategoria',
-      meta: { priority: 4 },
-      cell: ({ row }) => categoryMap.get(row.original.category_key) ?? row.original.category_key,
-    },
-    {
-      accessorKey: 'subcontractor_name',
-      header: 'Podwykonawca',
-      meta: { priority: 4 },
-      cell: ({ row }) => row.original.subcontractor_name ?? '—',
-    },
-    {
-      accessorKey: 'assigned_user_id',
-      header: 'Przypisany',
-      meta: { priority: 4 },
-      cell: ({ row }) => {
-        const value = row.original.assigned_user_id
-        if (!value) return '—'
-        return userMap.get(value) ?? value
-      },
-    },
-    { accessorKey: 'reported_at', header: 'Data zgloszenia', meta: { priority: 3 } },
-    { accessorKey: 'resolved_at', header: 'Data rozwiazania', meta: { priority: 4 } },
-    { accessorKey: 'updated_at', header: 'Aktualizacja', meta: { priority: 5 } },
-  ], [categoryMap, projectMap, userMap])
+    { accessorKey: 'reported_at', header: 'Data zgloszenia', meta: { priority: 1 } },
+  ], [categoryMap, projectMap])
 
   return (
     <>
