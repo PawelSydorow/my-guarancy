@@ -2,12 +2,14 @@
 import * as React from 'react'
 import { Page, PageBody } from '@open-mercato/ui/backend/Page'
 import { CrudForm, type CrudField, type CrudFormGroup, type CrudFieldOption } from '@open-mercato/ui/backend/CrudForm'
+import { AttachmentsSection } from '@open-mercato/ui/backend/detail'
 import { ComboboxInput } from '@open-mercato/ui/backend/inputs'
 import { createCrud, fetchCrudList, updateCrud, deleteCrud } from '@open-mercato/ui/backend/utils/crud'
 import { pushWithFlash } from '@open-mercato/ui/backend/utils/flash'
 import { useRouter } from 'next/navigation'
 import type { LookupBundle, LookupOption, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
 import { normalizeWarrantyClaimRecord } from '../types'
+import { WARRANTY_CLAIM_ENTITY_ID } from '../lib/constants'
 
 type FormValues = {
   id?: string
@@ -337,7 +339,24 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
         )
       },
     },
-  ], [claimRecord, subcontractors])
+    {
+      id: 'attachments',
+      title: 'Zalaczniki',
+      column: 2,
+      component: () => (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Pliki zapisuja sie od razu po dodaniu lub usunieciu. Zmiany formularza nadal wymagaja osobnego zapisu.
+          </p>
+          <AttachmentsSection
+            entityId={WARRANTY_CLAIM_ENTITY_ID}
+            recordId={mode === 'edit' ? claimId ?? null : null}
+            showHeader={false}
+          />
+        </div>
+      ),
+    },
+  ], [claimId, claimRecord, mode, subcontractors])
 
   const handleSubmit = React.useCallback(async (values: FormValues) => {
     const payload = {

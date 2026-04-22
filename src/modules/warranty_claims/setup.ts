@@ -4,8 +4,8 @@ import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { seedWarrantyClaimsDefaults } from './lib/seeds'
 
 const DEFAULT_ROLE_FEATURES = {
-  superadmin: ['warranty_claims.*'],
-  admin: ['warranty_claims.*'],
+  superadmin: ['warranty_claims.*', 'attachments.view', 'attachments.manage'],
+  admin: ['warranty_claims.*', 'attachments.view', 'attachments.manage'],
 }
 
 async function ensureRoleFeatures(em: Parameters<NonNullable<ModuleSetupConfig['seedDefaults']>>[0]['em'], tenantId: string) {
