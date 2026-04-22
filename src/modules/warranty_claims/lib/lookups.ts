@@ -95,6 +95,7 @@ export async function getUserOptions(em: EntityManager, scope: Scope, query = ''
     User,
     {
       tenantId: scope.tenantId,
+      organizationId: scope.organizationId,
       deletedAt: null,
     },
     { orderBy: { name: 'asc', email: 'asc' } },
@@ -110,15 +111,16 @@ export async function getUserOptions(em: EntityManager, scope: Scope, query = ''
 }
 
 export async function getLookupBundle(em: EntityManager, scope: Scope): Promise<LookupBundle> {
-  const [projects, users, statuses, priorities, categories] = await Promise.all([
+  const [projects, users, statuses, priorities, categories, subcontractors] = await Promise.all([
     getProjectOptions(em, scope),
     getUserOptions(em, scope),
     getDictionaryOptions(em, scope, WARRANTY_DICTIONARY_KEYS.status),
     getDictionaryOptions(em, scope, WARRANTY_DICTIONARY_KEYS.priority),
     getDictionaryOptions(em, scope, WARRANTY_DICTIONARY_KEYS.category),
+    getSubcontractorOptions(em, scope),
   ])
 
-  return { projects, users, statuses, priorities, categories }
+  return { projects, users, statuses, priorities, categories, subcontractors }
 }
 
 export async function getHistoricalSubcontractorOption(

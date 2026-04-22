@@ -68,8 +68,16 @@ export const { metadata, GET, POST, PUT, DELETE } = makeCrudRoute<
       if (query.bas_number) filters.basNumber = { $ilike: `%${query.bas_number}%` }
       if (query.reported_from || query.reported_to) {
         const range: { $gte?: Date; $lte?: Date } = {}
-        if (query.reported_from) range.$gte = new Date(`${query.reported_from}T00:00:00.000Z`)
-        if (query.reported_to) range.$lte = new Date(`${query.reported_to}T23:59:59.999Z`)
+        if (query.reported_from) {
+          range.$gte = query.reported_from.includes('T')
+            ? new Date(query.reported_from)
+            : new Date(`${query.reported_from}T00:00:00.000Z`)
+        }
+        if (query.reported_to) {
+          range.$lte = query.reported_to.includes('T')
+            ? new Date(query.reported_to)
+            : new Date(`${query.reported_to}T23:59:59.999Z`)
+        }
         filters.reportedAt = range
       }
 

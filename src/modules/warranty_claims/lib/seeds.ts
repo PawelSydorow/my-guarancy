@@ -50,6 +50,48 @@ const DICTIONARY_DEFINITIONS = {
   },
 } as const
 
+const WARRANTY_PROJECT_SEED_COUNT = 300
+
+function padProjectNumber(value: number): string {
+  return String(value).padStart(3, '0')
+}
+
+export function buildWarrantyProjectSeeds(total = WARRANTY_PROJECT_SEED_COUNT): ProjectSeed[] {
+  const baseProjects = (projects as ProjectSeed[])
+    .map((project) => ({
+      seedKey: project.seedKey.trim(),
+      name: project.name.trim(),
+      code: project.code?.trim() || null,
+    }))
+    .filter((project) => project.seedKey.length > 0 && project.name.length > 0)
+
+  const items: ProjectSeed[] = []
+  const usedSeedKeys = new Set<string>()
+  const usedCodes = new Set<string>()
+
+  const register = (project: ProjectSeed) => {
+    if (usedSeedKeys.has(project.seedKey)) return
+    items.push(project)
+    usedSeedKeys.add(project.seedKey)
+    if (project.code) usedCodes.add(project.code)
+  }
+
+  baseProjects.forEach(register)
+
+  for (let index = items.length + 1; items.length < total; index += 1) {
+    const padded = padProjectNumber(index)
+    const generatedSeedKey = `projekt-gwarancyjny-${padded}`
+    const generatedCode = `WG-${padded}`
+    register({
+      seedKey: generatedSeedKey,
+      name: `Projekt Gwarancyjny ${padded}`,
+      code: usedCodes.has(generatedCode) ? null : generatedCode,
+    })
+  }
+
+  return items.slice(0, total)
+}
+
 export async function ensureWarrantyDictionary(
   em: EntityManager,
   scope: SeedScope,
@@ -126,7 +168,7 @@ export async function ensureWarrantyDictionaryEntries(
 export async function seedWarrantyProjects(em: EntityManager, scope: SeedScope): Promise<Map<string, Project>> {
   const bySeedKey = new Map<string, Project>()
 
-  for (const rawProject of projects as ProjectSeed[]) {
+  for (const rawProject of buildWarrantyProjectSeeds()) {
     const seedKey = rawProject.seedKey.trim()
     if (!seedKey) continue
     let project = await em.findOne(Project, {
@@ -167,8 +209,12 @@ export async function seedWarrantySubcontractors(
 ): Promise<void> {
   for (const rawSubcontractor of subcontractors as SubcontractorSeed[]) {
     const seedKey = rawSubcontractor.seedKey.trim()
-    const project = projectsBySeedKey.get(rawSubcontractor.projectKey.trim())
-    if (!seedKey || !project) continue
+    const projectKey = rawSubcontractor.projectKey.trim()
+    const project = projectsBySeedKey.get(projectKey)
+    if (!seedKey || !project) {
+      console.warn(`[warranty_claims seed] Skipping subcontractor "${rawSubcontractor.seedKey}": project key "${rawSubcontractor.projectKey}" not found`)
+      continue
+    }
 
     let subcontractor = await em.findOne(ProjectSubcontractor, {
       tenantId: scope.tenantId,

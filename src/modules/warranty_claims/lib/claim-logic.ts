@@ -235,7 +235,10 @@ export async function prepareClaimInput<T extends ClaimMutationInput>(
   prepared.subcontractor_email = subcontractor.email
   prepared.subcontractor_phone = subcontractor.phone
   prepared.subcontractor_contact_person = subcontractor.contactPerson
-  prepared.resolved_at = resolveResolvedAt(prepared.status_key, prepared.resolved_at ?? null)
+
+  // preserve existing resolved_at from DB if input omits it — prevents overwrite on PUT
+  const currentResolvedAt = prepared.resolved_at ?? (existing?.resolvedAt ? existing.resolvedAt.toISOString() : null)
+  prepared.resolved_at = resolveResolvedAt(prepared.status_key, currentResolvedAt)
 
   return prepared
 }

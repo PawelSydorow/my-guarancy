@@ -5,13 +5,14 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { DataTable } from '@open-mercato/ui/backend/DataTable'
 import { RowActions } from '@open-mercato/ui/backend/RowActions'
-import type { FilterValues } from '@open-mercato/ui/backend/FilterBar'
+import type { FilterDef, FilterValues } from '@open-mercato/ui/backend/FilterBar'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { deleteCrud, fetchCrudList } from '@open-mercato/ui/backend/utils/crud'
 import { flash } from '@open-mercato/ui/backend/FlashMessages'
 import { useConfirmDialog } from '@open-mercato/ui/backend/confirm-dialog'
 import { useRouter } from 'next/navigation'
-import type { LookupBundle, WarrantyClaimRecord } from '../types'
+import type { LookupBundle, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
+import { normalizeWarrantyClaimRecord } from '../types'
 
 type ClaimsResponse = {
   items: WarrantyClaimRecord[]
@@ -19,6 +20,10 @@ type ClaimsResponse = {
   page: number
   pageSize: number
   totalPages: number
+}
+
+type FilterLookupResponse = {
+  items?: Array<{ id: string; label: string; description?: string | null }>
 }
 
 export default function WarrantyClaimsTable() {
@@ -71,7 +76,13 @@ export default function WarrantyClaimsTable() {
 
   const claimsQuery = useQuery<ClaimsResponse>({
     queryKey: ['warranty-claims', queryParams],
-    queryFn: async () => fetchCrudList<WarrantyClaimRecord>('warranty_claims/claims', queryParams),
+    queryFn: async () => {
+      const response = await fetchCrudList<WarrantyClaimApiRecord>('warranty_claims/claims', queryParams)
+      return {
+        ...response,
+        items: (response.items ?? []).map((item) => normalizeWarrantyClaimRecord(item)),
+      }
+    },
   })
 
   const projectMap = React.useMemo(() => {
@@ -86,6 +97,107 @@ export default function WarrantyClaimsTable() {
     return map
   }, [lookupsQuery.data?.users])
 
+  const statusMap = React.useMemo(() => {
+    const map = new Map<string, string>()
+    for (const item of lookupsQuery.data?.statuses ?? []) map.set(item.id, item.label)
+    return map
+  }, [lookupsQuery.data?.statuses])
+
+  const priorityMap = React.useMemo(() => {
+    const map = new Map<string, string>()
+    for (const item of lookupsQuery.data?.priorities ?? []) map.set(item.id, item.label)
+    return map
+  }, [lookupsQuery.data?.priorities])
+
+  const categoryMap = React.useMemo(() => {
+    const map = new Map<string, string>()
+    for (const item of lookupsQuery.data?.categories ?? []) map.set(item.id, item.label)
+    return map
+  }, [lookupsQuery.data?.categories])
+
+  const loadFilterOptions = React.useCallback(async (endpoint: string, query?: string) => {
+    const params = new URLSearchParams()
+    if (query?.trim()) params.set('q', query.trim())
+    const response = await fetch(`/api/warranty_claims/${endpoint}?${params.toString()}`, { credentials: 'include' })
+    if (!response.ok) throw new Error('Failed to load filter options')
+    const payload = await response.json() as FilterLookupResponse
+    return Array.isArray(payload.items)
+      ? payload.items.map((item) => ({ value: item.id, label: item.label, description: item.description ?? null }))
+      : []
+  }, [])
+
+  const filtersDef = React.useMemo<FilterDef[]>(() => [
+    {
+      id: 'status_key',
+      label: 'Status',
+      type: 'combobox',
+      options: (lookupsQuery.data?.statuses ?? []).map((item) => ({ value: item.id, label: item.label })),
+      formatValue: (value: string) => statusMap.get(value) ?? value,
+      loadOptions: async (query?: string) => (lookupsQuery.data?.statuses ?? [])
+        .filter((item) => !query?.trim() || item.label.toLowerCase().includes(query.trim().toLowerCase()))
+        .map((item) => ({ value: item.id, label: item.label })),
+    },
+    {
+      id: 'priority_key',
+      label: 'Pilnosc',
+      type: 'combobox',
+      options: (lookupsQuery.data?.priorities ?? []).map((item) => ({ value: item.id, label: item.label })),
+      formatValue: (value: string) => priorityMap.get(value) ?? value,
+      loadOptions: async (query?: string) => (lookupsQuery.data?.priorities ?? [])
+        .filter((item) => !query?.trim() || item.label.toLowerCase().includes(query.trim().toLowerCase()))
+        .map((item) => ({ value: item.id, label: item.label })),
+    },
+    {
+      id: 'category_key',
+      label: 'Kategoria',
+      type: 'combobox',
+      options: (lookupsQuery.data?.categories ?? []).map((item) => ({ value: item.id, label: item.label })),
+      formatValue: (value: string) => categoryMap.get(value) ?? value,
+      loadOptions: async (query?: string) => (lookupsQuery.data?.categories ?? [])
+        .filter((item) => !query?.trim() || item.label.toLowerCase().includes(query.trim().toLowerCase()))
+        .map((item) => ({ value: item.id, label: item.label })),
+    },
+    {
+      id: 'project_id',
+      label: 'Projekt',
+      type: 'combobox',
+      options: (lookupsQuery.data?.projects ?? []).map((item) => ({ value: item.id, label: item.label, description: item.description ?? null })),
+      formatValue: (value: string) => projectMap.get(value) ?? value,
+      loadOptions: (query?: string) => loadFilterOptions('projects', query),
+    },
+    {
+      id: 'assigned_user_id',
+      label: 'Przypisany',
+      type: 'combobox',
+      options: (lookupsQuery.data?.users ?? []).map((item) => ({ value: item.id, label: item.label, description: item.description ?? null })),
+      formatValue: (value: string) => userMap.get(value) ?? value,
+      loadOptions: (query?: string) => loadFilterOptions('users', query),
+    },
+    {
+      id: 'subcontractor_id',
+      label: 'Podwykonawca',
+      type: 'combobox',
+      options: (lookupsQuery.data?.subcontractors ?? []).map((item) => ({ value: item.id, label: item.label, description: item.description ?? null })),
+      formatValue: (value: string) => (lookupsQuery.data?.subcontractors ?? []).find((item) => item.id === value)?.label ?? value,
+      loadOptions: (query?: string) => loadFilterOptions('subcontractors', query),
+    },
+    { id: 'bas_number', label: 'BAS', type: 'text' },
+    { id: 'reported_at', label: 'Data zgloszenia', type: 'dateRange' },
+  ], [
+    categoryMap,
+    loadFilterOptions,
+    lookupsQuery.data?.categories,
+    lookupsQuery.data?.priorities,
+    lookupsQuery.data?.projects,
+    lookupsQuery.data?.statuses,
+    lookupsQuery.data?.subcontractors,
+    lookupsQuery.data?.users,
+    priorityMap,
+    projectMap,
+    statusMap,
+    userMap,
+  ])
+
   const columns = React.useMemo<ColumnDef<WarrantyClaimRecord>[]>(() => [
     { accessorKey: 'title', header: 'Tytul', meta: { priority: 1 } },
     { accessorKey: 'bas_number', header: 'BAS', meta: { priority: 2 } },
@@ -95,10 +207,30 @@ export default function WarrantyClaimsTable() {
       meta: { priority: 2 },
       cell: ({ row }) => projectMap.get(row.original.project_id) ?? row.original.project_id,
     },
-    { accessorKey: 'status_key', header: 'Status', meta: { priority: 2 } },
-    { accessorKey: 'priority_key', header: 'Pilnosc', meta: { priority: 3 } },
-    { accessorKey: 'category_key', header: 'Kategoria', meta: { priority: 4 } },
-    { accessorKey: 'subcontractor_name', header: 'Podwykonawca', meta: { priority: 4 } },
+    {
+      accessorKey: 'status_key',
+      header: 'Status',
+      meta: { priority: 2 },
+      cell: ({ row }) => statusMap.get(row.original.status_key) ?? row.original.status_key,
+    },
+    {
+      accessorKey: 'priority_key',
+      header: 'Pilnosc',
+      meta: { priority: 3 },
+      cell: ({ row }) => priorityMap.get(row.original.priority_key) ?? row.original.priority_key,
+    },
+    {
+      accessorKey: 'category_key',
+      header: 'Kategoria',
+      meta: { priority: 4 },
+      cell: ({ row }) => categoryMap.get(row.original.category_key) ?? row.original.category_key,
+    },
+    {
+      accessorKey: 'subcontractor_name',
+      header: 'Podwykonawca',
+      meta: { priority: 4 },
+      cell: ({ row }) => row.original.subcontractor_name ?? '—',
+    },
     {
       accessorKey: 'assigned_user_id',
       header: 'Przypisany',
@@ -112,7 +244,7 @@ export default function WarrantyClaimsTable() {
     { accessorKey: 'reported_at', header: 'Data zgloszenia', meta: { priority: 3 } },
     { accessorKey: 'resolved_at', header: 'Data rozwiazania', meta: { priority: 4 } },
     { accessorKey: 'updated_at', header: 'Aktualizacja', meta: { priority: 5 } },
-  ], [projectMap, userMap])
+  ], [categoryMap, priorityMap, projectMap, statusMap, userMap])
 
   return (
     <>
@@ -130,15 +262,7 @@ export default function WarrantyClaimsTable() {
           setSearchTitle(value)
           setPage(1)
         }}
-        filters={[
-          { id: 'status_key', label: 'Status', type: 'select', options: (lookupsQuery.data?.statuses ?? []).map((item) => ({ value: item.id, label: item.label })) },
-          { id: 'priority_key', label: 'Pilnosc', type: 'select', options: (lookupsQuery.data?.priorities ?? []).map((item) => ({ value: item.id, label: item.label })) },
-          { id: 'category_key', label: 'Kategoria', type: 'select', options: (lookupsQuery.data?.categories ?? []).map((item) => ({ value: item.id, label: item.label })) },
-          { id: 'project_id', label: 'Projekt', type: 'select', options: (lookupsQuery.data?.projects ?? []).map((item) => ({ value: item.id, label: item.label })) },
-          { id: 'assigned_user_id', label: 'Przypisany', type: 'select', options: (lookupsQuery.data?.users ?? []).map((item) => ({ value: item.id, label: item.label })) },
-          { id: 'bas_number', label: 'BAS', type: 'text' },
-          { id: 'reported_at', label: 'Data zgloszenia', type: 'dateRange' },
-        ]}
+        filters={filtersDef}
         filterValues={filters}
         onFiltersApply={(nextValues) => {
           setFilters(nextValues)
