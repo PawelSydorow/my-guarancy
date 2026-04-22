@@ -98,3 +98,47 @@ Rekomendacja do upstream:
 - zdefiniować jeden obowiązujący format payloadu dla CRUD response,
 - upewnić się, że wszystkie ścieżki `makeCrudRoute`, serializacja i helpery frontendowe zwracają ten sam shape,
 - jeśli framework dopuszcza oba formaty, powinien robić to jawnie i konsekwentnie, a nie zależnie od ścieżki wykonania.
+
+## Bug 003: `DataTable` nie wspiera ręcznego resize kolumn ani persystencji ich szerokości
+
+Status:
+- otwarte
+- lokalny workaround wdrożony w `warranty_claims` przez `meta.maxWidth`
+- brak wsparcia dla user-driven column sizing
+
+Obszar:
+- `@open-mercato/ui`
+- `DataTable`
+- column sizing
+- persystencja ustawień użytkownika
+
+Jak odtworzyć:
+1. Otwórz tabelę opartą o `DataTable`.
+2. Spróbuj rozszerzyć kolumnę ręcznie myszą.
+3. Sprawdź, czy szerokość kolumny da się zmienić interaktywnie.
+4. Odśwież ekran i sprawdź, czy szerokość kolumny jest zapamiętana.
+
+Aktualne zachowanie:
+- `DataTable` wspiera persystencję kolejności kolumn, widoczności, sortowania i filtrów,
+- nie ma widocznego wsparcia dla ręcznego resize kolumn przez użytkownika,
+- nie ma też persystencji szerokości kolumn w perspectives/snapshot,
+- dla długich pól host musi ratować się lokalnie przez `meta.maxWidth` i truncation config.
+
+Aktualny przykład w aplikacji:
+- moduł `warranty_claims`
+- tabela: [WarrantyClaimsTable.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules/warranty_claims/components/WarrantyClaimsTable.tsx)
+- przypadek: kolumna `Projekt` wymaga lokalnego poszerzenia przez `meta.maxWidth`
+
+Oczekiwane zachowanie:
+- użytkownik powinien móc ręcznie zmieniać szerokość kolumn,
+- szerokości powinny dać się zapisać razem z perspektywą tabeli albo lokalnym snapshotem,
+- host nadal powinien móc podawać sensowne domyślne wartości z kodu.
+
+Co dziś zrobiono lokalnie:
+- w `warranty_claims` zwiększono szerokość obcięcia kolumny `Projekt` przez `meta.maxWidth`,
+- to poprawia czytelność jednej kolumny, ale nie rozwiązuje ogólnie resize i persystencji.
+
+Rekomendacja do upstream:
+- dodać wsparcie dla `columnSizing` / `onColumnSizingChange`,
+- dodać UI do resize kolumn,
+- zapisywać szerokości kolumn w perspective settings lub snapshot storage.

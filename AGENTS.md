@@ -162,3 +162,8 @@ Translation files in `src/i18n/{locale}.json`. Supported locales: en, pl, es, de
 
 - Node.js >= 24
 - Yarn (via corepack)
+
+## Collaboration Rules
+
+- Never revert or roll back local code changes without explicit user confirmation.
+- If a proposed rollback affects even a single file touched during the current task, ask first and wait for confirmation.
