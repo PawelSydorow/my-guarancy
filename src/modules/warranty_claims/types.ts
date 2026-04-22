@@ -4,6 +4,8 @@ export type WarrantyClaimRecord = {
   tenant_id: string
   is_active: boolean
   project_id: string
+  claim_number: number
+  claim_number_formatted: string
   title: string
   issue_description: string
   location_text: string
@@ -32,6 +34,10 @@ export type WarrantyClaimApiRecord = Partial<WarrantyClaimRecord> & {
   tenantId?: string
   isActive?: boolean
   projectId?: string
+  claimNumber?: number
+  claim_number?: number
+  claimNumberFormatted?: string
+  claim_number_formatted?: string
   issueDescription?: string
   locationText?: string
   priorityKey?: string
@@ -59,6 +65,8 @@ export function normalizeWarrantyClaimRecord(input: WarrantyClaimApiRecord): War
     tenant_id: input.tenant_id ?? input.tenantId ?? '',
     is_active: input.is_active ?? input.isActive ?? true,
     project_id: input.project_id ?? input.projectId ?? '',
+    claim_number: input.claim_number ?? input.claimNumber ?? 0,
+    claim_number_formatted: input.claim_number_formatted ?? input.claimNumberFormatted ?? '',
     title: input.title,
     issue_description: input.issue_description ?? input.issueDescription ?? '',
     location_text: input.location_text ?? input.locationText ?? '',

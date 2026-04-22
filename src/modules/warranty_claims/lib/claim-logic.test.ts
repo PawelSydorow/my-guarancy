@@ -3,7 +3,7 @@ import { Dictionary, DictionaryEntry } from '@open-mercato/core/modules/dictiona
 import { User } from '@open-mercato/core/modules/auth/data/entities'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { Project, ProjectSubcontractor, WarrantyClaim } from '../data/entities'
-import { prepareClaimInput } from './claim-logic'
+import { formatClaimNumber, prepareClaimInput, serializeClaimRecord } from './claim-logic'
 
 function createEntityManagerMock(config?: {
   projectActive?: boolean
@@ -44,6 +44,16 @@ function createEntityManagerMock(config?: {
 
       return null
     }),
+    getConnection: () => ({
+      getKnex: () => {
+        const chain = {
+          where: () => chain,
+          max: () => chain,
+          first: async () => ({ maxClaimNumber: null }),
+        }
+        return () => chain
+      },
+    }),
   }
 
   return mock as unknown as EntityManager
@@ -67,6 +77,76 @@ const baseInput = {
 const SCOPE = { tenantId: 'tenant-1', organizationId: 'org-1' }
 
 describe('prepareClaimInput', () => {
+  describe('claim number logic', () => {
+    it('assigns first claim number for a project when no claims exist', async () => {
+      const em = createEntityManagerMock({ userExists: true })
+      ;(em as unknown as { getConnection: () => { getKnex: () => unknown } }).getConnection = () => ({
+        getKnex: () => {
+          const chain = {
+            where: () => chain,
+            max: () => chain,
+            first: async () => ({ maxClaimNumber: null }),
+          }
+          return () => chain
+        },
+      })
+
+      const result = await prepareClaimInput(em, SCOPE, baseInput)
+
+      expect(result.claim_number).toBe(1)
+    })
+
+    it('increments claim number within the same project', async () => {
+      const em = createEntityManagerMock({ userExists: true })
+      ;(em as unknown as { getConnection: () => { getKnex: () => unknown } }).getConnection = () => ({
+        getKnex: () => {
+          const chain = {
+            where: () => chain,
+            max: () => chain,
+            first: async () => ({ maxClaimNumber: 7 }),
+          }
+          return () => chain
+        },
+      })
+
+      const result = await prepareClaimInput(em, SCOPE, baseInput)
+
+      expect(result.claim_number).toBe(8)
+    })
+
+    it('keeps existing claim number on edit', async () => {
+      const em = createEntityManagerMock({ userExists: true })
+      const existing = {
+        id: 'claim-1',
+        projectId: '11111111-1111-1111-1111-111111111111',
+        claimNumber: 4,
+        subcontractorId: null,
+        resolvedAt: null,
+      } as WarrantyClaim
+
+      const result = await prepareClaimInput(em, SCOPE, { ...baseInput, id: 'claim-1' }, existing)
+
+      expect(result.claim_number).toBe(4)
+    })
+  })
+
+  describe('project immutability', () => {
+    it('rejects project change on edit', async () => {
+      const em = createEntityManagerMock({ userExists: true })
+      const existing = {
+        id: 'claim-1',
+        projectId: '99999999-9999-9999-9999-999999999999',
+        claimNumber: 4,
+        subcontractorId: null,
+        resolvedAt: null,
+      } as WarrantyClaim
+
+      await expect(
+        prepareClaimInput(em, SCOPE, { ...baseInput, id: 'claim-1' }, existing),
+      ).rejects.toBeInstanceOf(CrudHttpError)
+    })
+  })
+
   describe('resolved_at logic', () => {
     it('autofills resolved_at on first transition to zakonczone', async () => {
       const em = createEntityManagerMock({ userExists: true })
@@ -211,5 +291,49 @@ describe('prepareClaimInput', () => {
       expect(result.priority_key).toBe('wysoki')
       expect(result.category_key).toBe('elewacja')
     })
+  })
+})
+
+describe('claim number formatting', () => {
+  it('formats numbers to at least three digits', () => {
+    expect(formatClaimNumber(1)).toBe('001')
+    expect(formatClaimNumber(12)).toBe('012')
+    expect(formatClaimNumber(123)).toBe('123')
+    expect(formatClaimNumber(1000)).toBe('1000')
+  })
+
+  it('serializes formatted claim number with the record', () => {
+    const entity = {
+      id: 'claim-1',
+      organizationId: 'org-1',
+      tenantId: 'tenant-1',
+      isActive: true,
+      projectId: 'project-1',
+      claimNumber: 7,
+      title: 'Claim title',
+      issueDescription: 'Issue description',
+      locationText: 'Location',
+      priorityKey: 'high',
+      categoryKey: 'facade',
+      basNumber: 'BAS-1',
+      statusKey: 'open',
+      reportedAt: new Date('2026-04-21T10:00:00.000Z'),
+      assignedUserId: null,
+      resolvedAt: null,
+      subcontractorId: null,
+      subcontractorName: null,
+      subcontractorAddress: null,
+      subcontractorEmail: null,
+      subcontractorPhone: null,
+      subcontractorContactPerson: null,
+      createdAt: new Date('2026-04-21T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-21T10:00:00.000Z'),
+      deletedAt: null,
+    } as WarrantyClaim
+
+    const result = serializeClaimRecord(entity)
+
+    expect(result.claim_number).toBe(7)
+    expect(result.claim_number_formatted).toBe('007')
   })
 })

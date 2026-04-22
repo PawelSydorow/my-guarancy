@@ -14,6 +14,7 @@ type Scope = {
 type ClaimMutationInput = WarrantyClaimCreateInput | WarrantyClaimUpdateInput
 
 export type PreparedClaimInput<T extends ClaimMutationInput = ClaimMutationInput> = T & {
+  claim_number?: number
   title: string
   issue_description: string
   location_text: string
@@ -28,6 +29,38 @@ export type PreparedClaimInput<T extends ClaimMutationInput = ClaimMutationInput
   subcontractor_email?: string | null
   subcontractor_phone?: string | null
   subcontractor_contact_person?: string | null
+}
+
+function parseClaimNumberValue(value: unknown): number {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) return value
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number.parseInt(value, 10)
+    if (Number.isInteger(parsed) && parsed > 0) return parsed
+  }
+  return 0
+}
+
+export function formatClaimNumber(value: number | null | undefined): string {
+  if (!Number.isInteger(value) || value === null || value === undefined || value <= 0) return ''
+  return String(value).padStart(3, '0')
+}
+
+async function resolveNextClaimNumber(
+  em: EntityManager,
+  scope: Scope,
+  projectId: string,
+): Promise<number> {
+  const knex = em.getConnection().getKnex()
+  const row = await knex('warranty_claims_claims')
+    .where({
+      organization_id: scope.organizationId,
+      tenant_id: scope.tenantId,
+      project_id: projectId,
+    })
+    .max<{ maxClaimNumber?: string | number | null }>({ maxClaimNumber: 'claim_number' })
+    .first()
+
+  return parseClaimNumberValue(row?.maxClaimNumber) + 1
 }
 
 function cleanText(value: string): string {
@@ -211,6 +244,10 @@ export async function prepareClaimInput<T extends ClaimMutationInput>(
     resolved_at: toIsoOrThrow(input.resolved_at ?? null, 'resolved_at'),
   }
 
+  if (existing && prepared.project_id !== existing.projectId) {
+    throw new CrudHttpError(400, { error: 'Project cannot be changed after the claim is created' })
+  }
+
   const project = await resolveProject(em, scope, prepared.project_id, existing)
   if (!project) {
     throw new CrudHttpError(400, { error: 'Selected project does not exist or is inactive' })
@@ -239,6 +276,7 @@ export async function prepareClaimInput<T extends ClaimMutationInput>(
   // preserve existing resolved_at from DB if input omits it — prevents overwrite on PUT
   const currentResolvedAt = prepared.resolved_at ?? (existing?.resolvedAt ? existing.resolvedAt.toISOString() : null)
   prepared.resolved_at = resolveResolvedAt(prepared.status_key, currentResolvedAt)
+  prepared.claim_number = existing?.claimNumber ?? await resolveNextClaimNumber(em, scope, prepared.project_id)
 
   return prepared
 }
@@ -249,6 +287,7 @@ export function mapPreparedClaimToEntity<T extends ClaimMutationInput>(input: Pr
     tenantId: scope.tenantId,
     isActive: true,
     projectId: input.project_id,
+    claimNumber: input.claim_number,
     title: input.title,
     issueDescription: input.issue_description,
     locationText: input.location_text,
@@ -269,7 +308,6 @@ export function mapPreparedClaimToEntity<T extends ClaimMutationInput>(input: Pr
 }
 
 export function applyPreparedClaimToEntity<T extends ClaimMutationInput>(entity: WarrantyClaim, input: PreparedClaimInput<T>) {
-  entity.projectId = input.project_id
   entity.title = input.title
   entity.issueDescription = input.issue_description
   entity.locationText = input.location_text
@@ -296,6 +334,8 @@ export function serializeClaimRecord(entity: WarrantyClaim) {
     tenant_id: entity.tenantId,
     is_active: entity.isActive,
     project_id: entity.projectId,
+    claim_number: entity.claimNumber,
+    claim_number_formatted: formatClaimNumber(entity.claimNumber),
     title: entity.title,
     issue_description: entity.issueDescription,
     location_text: entity.locationText,

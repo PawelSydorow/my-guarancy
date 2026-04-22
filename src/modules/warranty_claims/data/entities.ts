@@ -88,12 +88,14 @@ export class ProjectSubcontractor {
 
 @Entity({ tableName: 'warranty_claims_claims' })
 @Index({ name: 'warranty_claims_claims_project_idx', properties: ['projectId'] })
+@Index({ name: 'warranty_claims_claims_claim_number_idx', properties: ['claimNumber'] })
 @Index({ name: 'warranty_claims_claims_subcontractor_idx', properties: ['subcontractorId'] })
 @Index({ name: 'warranty_claims_claims_assigned_user_idx', properties: ['assignedUserId'] })
 @Index({ name: 'warranty_claims_claims_status_idx', properties: ['statusKey'] })
 @Index({ name: 'warranty_claims_claims_priority_idx', properties: ['priorityKey'] })
 @Index({ name: 'warranty_claims_claims_category_idx', properties: ['categoryKey'] })
 @Index({ name: 'warranty_claims_claims_org_tenant_idx', properties: ['organizationId', 'tenantId'] })
+@Unique({ name: 'warranty_claims_claims_scope_project_claim_number_unique', properties: ['organizationId', 'tenantId', 'projectId', 'claimNumber'] })
 export class WarrantyClaim {
   [OptionalProps]?: 'isActive' | 'assignedUserId' | 'resolvedAt' | 'subcontractorId' | 'subcontractorName' | 'subcontractorAddress' | 'subcontractorEmail' | 'subcontractorPhone' | 'subcontractorContactPerson' | 'createdAt' | 'updatedAt' | 'deletedAt'
 
@@ -111,6 +113,9 @@ export class WarrantyClaim {
 
   @Property({ name: 'project_id', type: 'uuid' })
   projectId!: string
+
+  @Property({ name: 'claim_number', type: 'integer' })
+  claimNumber!: number
 
   @Property({ type: 'text' })
   title!: string

@@ -99,6 +99,7 @@ export default function WarrantyClaimsTable() {
     addIfValue('status_key', filters.status_key)
     addIfValue('priority_key', filters.priority_key)
     addIfValue('category_key', filters.category_key)
+    addIfValue('claim_number', filters.claim_number)
     addIfValue('project_id', filters.project_id)
     addIfValue('assigned_user_id', filters.assigned_user_id)
     addIfValue('subcontractor_id', filters.subcontractor_id)
@@ -155,6 +156,11 @@ export default function WarrantyClaimsTable() {
   }, [lookupsQuery.data?.categories])
 
   const filtersDef = React.useMemo<FilterDef[]>(() => [
+    {
+      id: 'claim_number',
+      label: 'Numer zgloszenia',
+      type: 'text',
+    },
     {
       id: 'status_key',
       label: 'Status',
@@ -214,6 +220,12 @@ export default function WarrantyClaimsTable() {
   ])
 
   const columns = React.useMemo<ColumnDef<WarrantyClaimRecord>[]>(() => [
+    {
+      accessorKey: 'claim_number',
+      header: 'Numer zgloszenia',
+      meta: { priority: 1 },
+      cell: ({ row }) => row.original.claim_number_formatted || row.original.claim_number,
+    },
     { accessorKey: 'title', header: 'Tytul', meta: { priority: 1 } },
     { accessorKey: 'bas_number', header: 'BAS', meta: { priority: 2 } },
     {
@@ -271,7 +283,7 @@ export default function WarrantyClaimsTable() {
     { accessorKey: 'reported_at', header: 'Data zgloszenia', meta: { priority: 3 } },
     { accessorKey: 'resolved_at', header: 'Data rozwiazania', meta: { priority: 4 } },
     { accessorKey: 'updated_at', header: 'Aktualizacja', meta: { priority: 5 } },
-  ], [categoryMap, priorityMap, projectMap, statusMap, userMap])
+  ], [categoryMap, projectMap, userMap])
 
   return (
     <>

@@ -58,6 +58,7 @@ export const { metadata, GET, POST, PUT, DELETE } = makeCrudRoute<
       const filters: Record<string, unknown> = {}
 
       if (query.id) filters.id = query.id
+      if (query.claim_number) filters.claimNumber = query.claim_number
       if (query.status_key) filters.statusKey = query.status_key
       if (query.priority_key) filters.priorityKey = query.priority_key
       if (query.category_key) filters.categoryKey = query.category_key
@@ -87,6 +88,7 @@ export const { metadata, GET, POST, PUT, DELETE } = makeCrudRoute<
     allowCsv: true,
     csv: {
       headers: [
+        'claim_number',
         'title',
         'bas_number',
         'project_id',
@@ -100,6 +102,7 @@ export const { metadata, GET, POST, PUT, DELETE } = makeCrudRoute<
         'updated_at',
       ],
       row: (item: ClaimListItem) => [
+        item.claim_number_formatted || item.claim_number,
         item.title,
         item.bas_number,
         item.project_id,

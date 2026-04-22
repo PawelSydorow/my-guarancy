@@ -15,6 +15,7 @@ const ATTACHMENTS_LIBRARY_ENTITY_ID = 'attachments:library'
 
 type FormValues = {
   id?: string
+  claim_number?: string
   project_id: string
   title: string
   issue_description: string
@@ -138,6 +139,7 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
     async function loadClaim() {
       if (mode !== 'edit' || !claimId) {
         setInitialValues({
+          claim_number: '',
           project_id: '',
           title: '',
           issue_description: '',
@@ -164,6 +166,7 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
         setClaimRecord(claim)
         setInitialValues({
           id: claim.id,
+          claim_number: claim.claim_number_formatted,
           project_id: claim.project_id,
           title: claim.title,
           issue_description: claim.issue_description,
@@ -235,18 +238,32 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
 
   const fields = React.useMemo<CrudField[]>(() => [
     {
+      id: 'claim_number',
+      label: 'Numer zgloszenia',
+      type: 'custom',
+      component: ({ value }) => (
+        <input
+          type="text"
+          readOnly
+          value={typeof value === 'string' && value.trim() ? value : 'Nadany automatycznie po zapisie'}
+          className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+        />
+      ),
+    },
+    {
       id: 'project_id',
       label: 'Projekt',
       type: 'custom',
       required: true,
       component: ({ value, setValue, setFormValue }) => (
         <div className="relative">
-          {mode === 'create' ? <HiddenInitialFocusTarget /> : null}
+          <HiddenInitialFocusTarget />
           <ComboboxInput
             value={typeof value === 'string' ? value : ''}
             suggestions={toComboboxOptions(lookups?.projects ?? [])}
             loadSuggestions={loadProjectOptions}
             placeholder="Wybierz projekt"
+            disabled={mode === 'edit'}
             allowCustomValues={false}
             resolveLabel={(nextValue) => (lookups?.projects ?? []).find((item) => item.id === nextValue)?.label ?? nextValue}
             resolveDescription={(nextValue) => (lookups?.projects ?? []).find((item) => item.id === nextValue)?.description ?? null}
@@ -345,7 +362,7 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
       id: 'basic',
       title: 'Dane podstawowe',
       column: 1,
-      fields: ['project_id', 'title', 'bas_number', 'status_key', 'priority_key', 'category_key'],
+      fields: ['claim_number', 'project_id', 'title', 'bas_number', 'status_key', 'priority_key', 'category_key'],
     },
     {
       id: 'description',
@@ -399,8 +416,9 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
   ], [claimId, claimRecord, draftAttachmentRecordId, mode, subcontractors])
 
   const handleSubmit = React.useCallback(async (values: FormValues) => {
+    const { claim_number: _claimNumber, ...restValues } = values
     const payload = {
-      ...values,
+      ...restValues,
       assigned_user_id: values.assigned_user_id || null,
       subcontractor_id: values.subcontractor_id || null,
       resolved_at: values.resolved_at || null,

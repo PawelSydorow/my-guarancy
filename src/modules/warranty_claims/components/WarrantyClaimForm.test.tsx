@@ -5,6 +5,9 @@ import WarrantyClaimForm from './WarrantyClaimForm'
 const fetchCrudListMock = jest.fn()
 const createCrudMock = jest.fn()
 const updateCrudMock = jest.fn()
+const comboboxInputMock = jest.fn((props: { placeholder?: string; disabled?: boolean }) => (
+  <div data-testid={`combobox-${props.placeholder ?? 'unknown'}`} data-disabled={props.disabled ? 'true' : 'false'} />
+))
 const attachmentsSectionMock = jest.fn(({ entityId, recordId }: { entityId: string; recordId: string | null }) => (
   <div data-testid="attachments-section">{`${entityId}:${recordId ?? 'missing-record'}`}</div>
 ))
@@ -23,7 +26,7 @@ jest.mock('@open-mercato/ui/backend/detail', () => ({
 }))
 
 jest.mock('@open-mercato/ui/backend/inputs', () => ({
-  ComboboxInput: () => null,
+  ComboboxInput: (props: { placeholder?: string; disabled?: boolean }) => comboboxInputMock(props),
 }))
 
 jest.mock('@open-mercato/ui/backend/utils/flash', () => ({
@@ -40,12 +43,33 @@ jest.mock('@open-mercato/ui/backend/utils/crud', () => ({
 jest.mock('@open-mercato/ui/backend/CrudForm', () => ({
   CrudForm: (props: {
     title: string
+    fields?: Array<{ id: string; label?: string; type?: string; component?: (props: {
+      value?: unknown
+      values?: Record<string, unknown>
+      setValue?: (value: unknown) => void
+      setFormValue?: (key: string, value: unknown) => void
+      disabled?: boolean
+    }) => React.ReactNode }>
     groups?: Array<{ id: string; title?: string; component?: (props: { values?: Record<string, unknown> }) => React.ReactNode }>
     initialValues?: Record<string, unknown>
     onSubmit?: (values: Record<string, unknown>) => Promise<void>
   }) => (
     <div data-testid="crud-form">
       <div>{props.title}</div>
+      {(props.fields ?? []).map((field) => (
+        <div key={field.id} data-testid={`field-${field.id}`}>
+          {field.label ? <span>{field.label}</span> : null}
+          {field.type === 'custom' && field.component
+            ? field.component({
+              value: props.initialValues?.[field.id],
+              values: props.initialValues ?? {},
+              setValue: jest.fn(),
+              setFormValue: jest.fn(),
+              disabled: false,
+            })
+            : null}
+        </div>
+      ))}
       {(props.groups ?? []).map((group) => (
         <section key={group.id}>
           {group.title ? <h2>{group.title}</h2> : null}
@@ -77,6 +101,7 @@ describe('WarrantyClaimForm attachments', () => {
     fetchCrudListMock.mockReset()
     createCrudMock.mockReset()
     updateCrudMock.mockReset()
+    comboboxInputMock.mockClear()
 
     global.fetch = jest.fn(async (input: string | URL | Request) => {
       const url = String(input)
@@ -108,6 +133,7 @@ describe('WarrantyClaimForm attachments', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Zalaczniki')).not.toBeNull()
+      expect(screen.getByDisplayValue('Nadany automatycznie po zapisie')).not.toBeNull()
       expect(screen.getByTestId('attachments-section').textContent).toContain('attachments:library:warranty-claim-create:')
     })
   })
@@ -121,6 +147,8 @@ describe('WarrantyClaimForm attachments', () => {
           tenant_id: 'tenant-1',
           is_active: true,
           project_id: 'project-1',
+          claim_number: 7,
+          claim_number_formatted: '007',
           title: 'Claim title',
           issue_description: 'Issue description',
           location_text: 'Location',
@@ -147,7 +175,10 @@ describe('WarrantyClaimForm attachments', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Zalaczniki')).not.toBeNull()
+      expect(screen.getByDisplayValue('007')).not.toBeNull()
       expect(screen.getByTestId('attachments-section').textContent).toContain('warranty_claims:claim:claim-1')
+      expect(screen.getByTestId('combobox-Wybierz projekt').getAttribute('data-disabled')).toBe('true')
+      expect(document.querySelector('[aria-hidden="true"]')).not.toBeNull()
     })
   })
 
@@ -205,6 +236,8 @@ describe('WarrantyClaimForm attachments', () => {
 
     await waitFor(() => {
       expect(createCrudMock).toHaveBeenCalled()
+      const submittedPayload = createCrudMock.mock.calls[0]?.[1] as Record<string, unknown>
+      expect(submittedPayload.claim_number).toBeUndefined()
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/attachments?entityId=attachments%3Alibrary&recordId=warranty-claim-create%3A'),
         expect.objectContaining({ credentials: 'include' }),

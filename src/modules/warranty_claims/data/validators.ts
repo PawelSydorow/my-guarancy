@@ -20,6 +20,7 @@ export const warrantyClaimListSchema = z.object({
   sortField: z.string().default('updated_at'),
   sortDir: z.enum(['asc', 'desc']).default('desc'),
   withDeleted: z.coerce.boolean().optional().default(false),
+  claim_number: z.coerce.number().int().min(1).optional(),
   status_key: z.string().optional(),
   priority_key: z.string().optional(),
   category_key: z.string().optional(),
@@ -45,7 +46,7 @@ const warrantyClaimBaseSchema = z.object({
   assigned_user_id: z.string().uuid().nullable().optional(),
   resolved_at: isoDateStringSchema.nullable().optional(),
   subcontractor_id: z.string().uuid().nullable().optional(),
-})
+}).strict()
 
 export const warrantyClaimCreateSchema = warrantyClaimBaseSchema
 
