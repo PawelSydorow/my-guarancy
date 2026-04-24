@@ -189,3 +189,47 @@ Rekomendacja do upstream:
 - dodac pole `name` do formularza create/edit user,
 - upewnic sie, ze API listy/detalu usera zwraca je konsekwentnie,
 - rozwazyc pokazanie `name` takze na liscie uzytkownikow i w standardowych lookupach auth.
+
+## Bug 005: `ComboboxInput` mruga przy otwieraniu listy sugestii w formularzach z dynamicznym lookupiem
+
+Status:
+- otwarte
+- lokalny workaround wdrozony w `warranty_claims` bez zmiany kontrolki
+- bez zmian w core/UI
+
+Obszar:
+- `@open-mercato/ui`
+- `ComboboxInput`
+- zachowanie `focus` / `blur` przy asynchronicznych sugestiach
+
+Jak odtworzyc:
+1. Otworz ekran edycji rekordu oparty o `CrudForm`.
+2. Ustaw pole jako `ComboboxInput` z `loadSuggestions`.
+3. Wejdz w pole i poczekaj na sugestie.
+4. Lista pojawia sie, znika i pojawia ponownie albo mruga przy pierwszym otwarciu.
+
+Aktualny przyklad w aplikacji:
+- modul `warranty_claims`
+- pole: `Przypisana osoba`
+- ekran: formularz [WarrantyClaimForm.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules/warranty_claims/components/WarrantyClaimForm.tsx)
+
+Aktualne zachowanie:
+- `ComboboxInput` opiera sie na wlasnym stanie `focus` / `blur` i debounce dla `loadSuggestions`,
+- przy niektorych hostach formularza daje to efekt migniecia listy,
+- w praktyce uzytkownik widzi stabilny dropdown dopiero po chwili albo po drugim podejsciu.
+
+Oczekiwane zachowanie:
+- dropdown powinien otwierac sie stabilnie za pierwszym razem,
+- lista nie powinna migac przy inicjalnym focusie,
+- klikniecie opcji nie powinno powodowac dodatkowego zamkniecia i ponownego otwarcia.
+
+Co dzis zrobiono lokalnie:
+- w `warranty_claims` pole `Przypisana osoba` nadal korzysta z `ComboboxInput`,
+- dla tego pola podawane sa preloaded sugestie z lookupow, bez async `loadSuggestions`,
+- to omija problem bez potrzeby modyfikowania core/UI i bez zmiany kontrolki,
+- inne pola pozostaly bez zmian.
+
+Rekomendacja do upstream:
+- poprawic model otwierania/zamykania w `ComboboxInput`,
+- nie zamykac listy tylko dlatego, ze input traci focus podczas wyboru z listy,
+- pokazac loading stan natychmiast po aktywacji pola, jesli `loadSuggestions` jest asynchroniczne.

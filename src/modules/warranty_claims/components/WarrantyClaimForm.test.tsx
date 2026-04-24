@@ -238,6 +238,9 @@ describe('WarrantyClaimForm attachments', () => {
       expect(createCrudMock).toHaveBeenCalled()
       const submittedPayload = createCrudMock.mock.calls[0]?.[1] as Record<string, unknown>
       expect(submittedPayload.claim_number).toBeUndefined()
+      expect(submittedPayload.status_key).toBe('oczekuje')
+      expect(submittedPayload.priority_key).toBe('sredni')
+      expect(submittedPayload.assigned_user_id).toBeNull()
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/attachments?entityId=attachments%3Alibrary&recordId=warranty-claim-create%3A'),
         expect.objectContaining({ credentials: 'include' }),

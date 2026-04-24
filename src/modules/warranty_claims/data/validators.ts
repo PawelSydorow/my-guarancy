@@ -2,6 +2,18 @@ import { z } from 'zod'
 
 const isoDateStringSchema = z.string().datetime({ offset: true }).or(z.string().date())
 
+const requiredTextSchema = (message: string) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' ? value : ''),
+    z.string().trim().min(1, message),
+  )
+
+const requiredUuidSchema = (message: string) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' ? value : ''),
+    z.string().trim().min(1, message).uuid(message),
+  )
+
 export const lookupQuerySchema = z.object({
   q: z.string().optional().default(''),
   query: z.string().optional(),
@@ -34,16 +46,16 @@ export const warrantyClaimListSchema = z.object({
 })
 
 const warrantyClaimBaseSchema = z.object({
-  title: z.string().trim().min(1),
-  issue_description: z.string().trim().min(1),
-  location_text: z.string().trim().min(1),
-  project_id: z.string().uuid(),
-  priority_key: z.string().trim().min(1),
-  category_key: z.string().trim().min(1),
-  bas_number: z.string().trim().min(1),
-  status_key: z.string().trim().min(1),
+  title: requiredTextSchema('To pole jest wymagane'),
+  issue_description: requiredTextSchema('To pole jest wymagane'),
+  location_text: requiredTextSchema('To pole jest wymagane'),
+  project_id: requiredUuidSchema('Wybierz projekt'),
+  priority_key: requiredTextSchema('Wybierz pilność'),
+  category_key: requiredTextSchema('Wybierz kategorię'),
+  bas_number: requiredTextSchema('To pole jest wymagane'),
+  status_key: requiredTextSchema('Wybierz status'),
   reported_at: isoDateStringSchema,
-  assigned_user_id: z.string().uuid().nullable().optional(),
+  assigned_user_id: requiredUuidSchema('Wybierz osobę przypisaną'),
   resolved_at: isoDateStringSchema.nullable().optional(),
   subcontractor_id: z.string().uuid().nullable().optional(),
 }).strict()
@@ -52,6 +64,7 @@ export const warrantyClaimCreateSchema = warrantyClaimBaseSchema
 
 export const warrantyClaimUpdateSchema = warrantyClaimBaseSchema.extend({
   id: z.string().uuid(),
+  assigned_user_id: z.string().uuid().nullable().optional(),
 })
 
 export type WarrantyClaimCreateInput = z.infer<typeof warrantyClaimCreateSchema>

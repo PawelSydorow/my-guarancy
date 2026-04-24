@@ -13,5 +13,7 @@ export const WARRANTY_STATUS_KEYS = {
 } as const
 
 export const WARRANTY_PRIORITY_ORDER = ['niski', 'sredni', 'wysoki', 'krytyczny'] as const
+export const WARRANTY_DEFAULT_CREATE_STATUS_KEY = WARRANTY_STATUS_KEYS.pending
+export const WARRANTY_DEFAULT_CREATE_PRIORITY_KEY = WARRANTY_PRIORITY_ORDER[1]
 
 export type WarrantyDictionaryKind = keyof typeof WARRANTY_DICTIONARY_KEYS

@@ -7,10 +7,16 @@ import { ComboboxInput, DateTimePicker } from '@open-mercato/ui/backend/inputs'
 import { createCrud, fetchCrudList, updateCrud, deleteCrud } from '@open-mercato/ui/backend/utils/crud'
 import { pushWithFlash } from '@open-mercato/ui/backend/utils/flash'
 import { useRouter } from 'next/navigation'
+import type { z } from 'zod'
 import type { LookupBundle, LookupOption, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
 import { normalizeWarrantyClaimRecord } from '../types'
-import { WARRANTY_CLAIM_ENTITY_ID } from '../lib/constants'
+import {
+  WARRANTY_CLAIM_ENTITY_ID,
+  WARRANTY_DEFAULT_CREATE_PRIORITY_KEY,
+  WARRANTY_DEFAULT_CREATE_STATUS_KEY,
+} from '../lib/constants'
 import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_SEGMENT_CLASSES } from '../lib/statusStyles'
+import { warrantyClaimCreateSchema, warrantyClaimUpdateSchema } from '../data/validators'
 
 const ATTACHMENTS_LIBRARY_ENTITY_ID = 'attachments:library'
 
@@ -189,7 +195,13 @@ async function fetchLookupItems(endpoint: string, query = '', extraParams?: Reco
   return Array.isArray(payload.items) ? payload.items : []
 }
 
-export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 'edit'; claimId?: string }) {
+export default function WarrantyClaimForm({
+  mode,
+  claimId,
+}: {
+  mode: 'create' | 'edit'
+  claimId?: string
+}) {
   const router = useRouter()
   const [draftAttachmentRecordId] = React.useState(createDraftAttachmentRecordId)
   const [lookups, setLookups] = React.useState<LookupBundle | null>(null)
@@ -226,12 +238,12 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
           title: '',
           issue_description: '',
           location_text: '',
-          priority_key: '',
+          priority_key: WARRANTY_DEFAULT_CREATE_PRIORITY_KEY,
           category_key: '',
           bas_number: '',
-          status_key: '',
+          status_key: WARRANTY_DEFAULT_CREATE_STATUS_KEY,
           reported_at: new Date().toISOString(),
-          assigned_user_id: null,
+          assigned_user_id: undefined,
           resolved_at: null,
           subcontractor_id: null,
         })
@@ -305,19 +317,6 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
     })
   }, [claimRecord, initialValues?.project_id, loadSubcontractors])
 
-  const loadProjectOptions = React.useCallback(async (query?: string) => {
-    return toComboboxOptions(await fetchLookupItems('projects', query ?? ''))
-  }, [])
-
-  const loadUserOptions = React.useCallback(async (query?: string) => {
-    return toComboboxOptions(await fetchLookupItems('users', query ?? ''))
-  }, [])
-
-  const loadSubcontractorOptions = React.useCallback(async (query?: string, projectId?: string) => {
-    if (!projectId) return []
-    return toComboboxOptions(await fetchLookupItems('subcontractors', query ?? '', { project_id: projectId }))
-  }, [])
-
   const groups = React.useMemo<CrudFormGroup[]>(() => [
     {
       id: 'layout',
@@ -365,7 +364,6 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
                     <ComboboxInput
                       value={projectId}
                       suggestions={toComboboxOptions(projectOptions)}
-                      loadSuggestions={loadProjectOptions}
                       placeholder="Wybierz projekt"
                       disabled={mode === 'edit'}
                       allowCustomValues={false}
@@ -412,11 +410,10 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
 
             <FormCard title="Odpowiedzialność i realizacja" className="h-full">
               <div className="space-y-4">
-                <FieldFrame label="Przypisana osoba" error={errors.assigned_user_id}>
+                <FieldFrame label="Przypisana osoba" required error={errors.assigned_user_id}>
                   <ComboboxInput
                     value={assignedUserId}
                     suggestions={toComboboxOptions(userOptions)}
-                    loadSuggestions={loadUserOptions}
                     placeholder="Wybierz osobę"
                     allowCustomValues={false}
                     resolveLabel={(nextValue) => userOptions.find((item) => item.id === nextValue)?.label ?? nextValue}
@@ -470,7 +467,6 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
                     value={subcontractorId}
                     suggestions={toComboboxOptions(subcontractors)}
                     disabled={!projectId || subcontractorsLoading}
-                    loadSuggestions={(query?: string) => loadSubcontractorOptions(query, projectId)}
                     placeholder={projectId ? 'Wybierz podwykonawcę' : 'Najpierw wybierz projekt'}
                     allowCustomValues={false}
                     resolveLabel={(nextValue) => subcontractors.find((item) => item.id === nextValue)?.label ?? nextValue}
@@ -505,7 +501,12 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
         )
       },
     },
-  ], [claimRecord, loadProjectOptions, loadSubcontractorOptions, loadSubcontractors, loadUserOptions, lookups, mode, subcontractors, subcontractorsLoading])
+  ], [claimRecord, loadSubcontractors, lookups, mode, subcontractors, subcontractorsLoading])
+
+  const formSchema = React.useMemo(
+    () => (mode === 'create' ? warrantyClaimCreateSchema : warrantyClaimUpdateSchema) as unknown as z.ZodType<FormValues>,
+    [mode],
+  )
 
   const handleSubmit = React.useCallback(async (values: FormValues) => {
     const { claim_number: _claimNumber, ...restValues } = values
@@ -542,6 +543,7 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
           title={mode === 'create' ? 'Nowe zgloszenie gwarancyjne' : 'Edycja zgloszenia gwarancyjnego'}
           backHref="/backend/warranty-claims"
           entityId="warranty_claims:claim"
+          schema={formSchema}
           fields={[]}
           groups={groups}
           initialValues={initialValues ?? undefined}
@@ -559,4 +561,3 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
     </Page>
   )
 }
-
