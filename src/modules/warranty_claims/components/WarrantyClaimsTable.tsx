@@ -14,7 +14,7 @@ import { useConfirmDialog } from '@open-mercato/ui/backend/confirm-dialog'
 import { useRouter } from 'next/navigation'
 import type { LookupBundle, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
 import { normalizeWarrantyClaimRecord } from '../types'
-import { WARRANTY_STATUS_BADGE_MAP } from '../lib/statusStyles'
+import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_BADGE_MAP } from '../lib/statusStyles'
 
 type ClaimsResponse = {
   items: WarrantyClaimRecord[]
@@ -114,6 +114,17 @@ export default function WarrantyClaimsTable() {
     return map
   }, [lookupsQuery.data?.categories])
 
+  const priorityBadgeMap = React.useMemo(() => {
+    const map: Record<string, { label: string; className?: string }> = {}
+    for (const item of lookupsQuery.data?.priorities ?? []) {
+      map[item.id] = {
+        label: item.label,
+        className: WARRANTY_PRIORITY_SEGMENT_CLASSES[item.id],
+      }
+    }
+    return map
+  }, [lookupsQuery.data?.priorities])
+
   const filtersDef = React.useMemo<FilterDef[]>(() => [
     {
       id: 'claim_number',
@@ -181,17 +192,17 @@ export default function WarrantyClaimsTable() {
   const columns = React.useMemo<ColumnDef<WarrantyClaimRecord>[]>(() => [
     {
       accessorKey: 'claim_number',
-      header: 'Numer zgloszenia',
-      meta: { priority: 1, maxWidth: '96px' },
+      header: 'Nr. zgloszenia',
+      meta: { priority: 1, maxWidth: '80px' },
       cell: ({ row }) => row.original.claim_number_formatted,
     },
     {
       accessorKey: 'project_id',
       header: 'Projekt',
-      meta: { priority: 1, maxWidth: '320px' },
+      meta: { priority: 1, maxWidth: '420px' },
       cell: ({ row }) => projectMap.get(row.original.project_id) ?? row.original.project_id,
     },
-    { accessorKey: 'title', header: 'Tytul', meta: { priority: 1 } },
+    { accessorKey: 'title', header: 'Tytul', meta: { priority: 1, maxWidth: '520px' } },
     {
       accessorKey: 'category_key',
       header: 'Kategoria',
@@ -210,12 +221,27 @@ export default function WarrantyClaimsTable() {
         <EnumBadge
           value={row.original.status_key}
           map={WARRANTY_STATUS_BADGE_MAP}
-          fallback="â€”"
+          fallback="—"
         />
       ),
     },
+    {
+      accessorKey: 'priority_key',
+      header: 'Priorytet',
+      meta: { priority: 1 },
+      cell: ({ row }) => (
+        <span
+          title={priorityBadgeMap[row.original.priority_key]?.label ?? row.original.priority_key}
+          className={`inline-flex h-8 min-w-8 items-center justify-center rounded-none border px-2 text-xs font-medium leading-none ${
+            priorityBadgeMap[row.original.priority_key]?.className ?? 'border-border bg-muted text-foreground'
+          }`}
+        >
+          {priorityBadgeMap[row.original.priority_key]?.label ?? row.original.priority_key}
+        </span>
+      ),
+    },
     { accessorKey: 'reported_at', header: 'Data zgloszenia', meta: { priority: 1 } },
-  ], [categoryMap, projectMap])
+  ], [categoryMap, priorityBadgeMap, projectMap])
 
   return (
     <>
