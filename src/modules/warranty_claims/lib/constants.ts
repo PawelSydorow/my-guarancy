@@ -12,4 +12,6 @@ export const WARRANTY_STATUS_KEYS = {
   completed: 'zakonczone',
 } as const
 
+export const WARRANTY_PRIORITY_ORDER = ['niski', 'sredni', 'wysoki', 'krytyczny'] as const
+
 export type WarrantyDictionaryKind = keyof typeof WARRANTY_DICTIONARY_KEYS

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import type { LookupBundle, LookupOption, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
 import { normalizeWarrantyClaimRecord } from '../types'
 import { WARRANTY_CLAIM_ENTITY_ID } from '../lib/constants'
+import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_SEGMENT_CLASSES } from '../lib/statusStyles'
 
 const ATTACHMENTS_LIBRARY_ENTITY_ID = 'attachments:library'
 
@@ -47,19 +48,6 @@ function toComboboxOptions(items: LookupOption[]) {
     label: item.label,
     description: item.description ?? null,
   }))
-}
-
-const STATUS_SEGMENT_CLASSES: Record<string, string> = {
-  oczekuje: 'border-border bg-muted text-muted-foreground',
-  w_trakcie: 'border-primary/25 bg-primary/10 text-primary',
-  zakonczone: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-}
-
-const PRIORITY_SEGMENT_CLASSES: Record<string, string> = {
-  niski: 'border-border bg-muted text-muted-foreground',
-  sredni: 'border-primary/20 bg-primary/8 text-primary',
-  wysoki: 'border-[#fc3c00]/20 bg-[#fff0eb] text-[#982400]',
-  krytyczny: 'border-destructive/30 bg-destructive/10 text-destructive',
 }
 
 const FIELD_INPUT_CLASS =
@@ -128,8 +116,10 @@ function SegmentedSelectField({
             key={option.value}
             type="button"
             className={[
-              'inline-flex min-h-11 shrink-0 items-center rounded-none border px-3 text-sm font-semibold transition-colors',
-              isActive ? `${toneClass} shadow-sm` : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:text-foreground',
+              'inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-none border px-3 text-sm font-semibold transition-colors',
+              isActive
+                ? `${toneClass}`
+                : 'border-border bg-background text-muted-foreground',
             ].join(' ')}
             onClick={() => onChange(option.value)}
           >
@@ -397,7 +387,7 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
                       value={statusKey}
                       options={statusOptions.map((item) => ({ value: item.id, label: item.label }))}
                       onChange={(nextValue) => setValue('status_key', nextValue)}
-                      colorMap={STATUS_SEGMENT_CLASSES}
+                      colorMap={WARRANTY_STATUS_SEGMENT_CLASSES}
                     />
                   </FieldFrame>
                 </div>
@@ -413,7 +403,7 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
                       value={priorityKey}
                       options={priorityOptions.map((item) => ({ value: item.id, label: item.label }))}
                       onChange={(nextValue) => setValue('priority_key', nextValue)}
-                      colorMap={PRIORITY_SEGMENT_CLASSES}
+                      colorMap={WARRANTY_PRIORITY_SEGMENT_CLASSES}
                     />
                   </FieldFrame>
                 </div>

@@ -1,13 +1,12 @@
 "use client"
 import * as React from 'react'
 import Link from 'next/link'
-import { Circle, Clock3, CheckCircle2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { DataTable } from '@open-mercato/ui/backend/DataTable'
 import { RowActions } from '@open-mercato/ui/backend/RowActions'
 import type { FilterDef, FilterValues } from '@open-mercato/ui/backend/FilterBar'
-import { EnumBadge, type EnumBadgeMap } from '@open-mercato/ui/backend/ValueIcons'
+import { EnumBadge } from '@open-mercato/ui/backend/ValueIcons'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { deleteCrud, fetchCrudList } from '@open-mercato/ui/backend/utils/crud'
 import { flash } from '@open-mercato/ui/backend/FlashMessages'
@@ -15,6 +14,7 @@ import { useConfirmDialog } from '@open-mercato/ui/backend/confirm-dialog'
 import { useRouter } from 'next/navigation'
 import type { LookupBundle, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
 import { normalizeWarrantyClaimRecord } from '../types'
+import { WARRANTY_STATUS_BADGE_MAP } from '../lib/statusStyles'
 
 type ClaimsResponse = {
   items: WarrantyClaimRecord[]
@@ -22,24 +22,6 @@ type ClaimsResponse = {
   page: number
   pageSize: number
   totalPages: number
-}
-
-const WARRANTY_STATUS_BADGE_MAP: EnumBadgeMap = {
-  oczekuje: {
-    label: 'Oczekuje',
-    className: 'border-slate-200 text-slate-700 bg-slate-50',
-    icon: <Clock3 className="size-3" />,
-  },
-  w_trakcie: {
-    label: 'W trakcie',
-    className: 'border-amber-200 text-amber-800 bg-amber-50',
-    icon: <Circle className="size-3" />,
-  },
-  zakonczone: {
-    label: 'Zakonczone',
-    className: 'border-emerald-200 text-emerald-700 bg-emerald-50',
-    icon: <CheckCircle2 className="size-3" />,
-  },
 }
 
 export default function WarrantyClaimsTable() {
