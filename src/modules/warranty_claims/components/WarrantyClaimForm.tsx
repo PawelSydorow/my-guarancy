@@ -1,9 +1,9 @@
-"use client"
+﻿"use client"
 import * as React from 'react'
 import { Page, PageBody } from '@open-mercato/ui/backend/Page'
 import { CrudForm, type CrudField, type CrudFormGroup, type CrudFieldOption } from '@open-mercato/ui/backend/CrudForm'
 import { AttachmentsSection } from '@open-mercato/ui/backend/detail'
-import { ComboboxInput } from '@open-mercato/ui/backend/inputs'
+import { ComboboxInput, DateTimePicker } from '@open-mercato/ui/backend/inputs'
 import { createCrud, fetchCrudList, updateCrud, deleteCrud } from '@open-mercato/ui/backend/utils/crud'
 import { pushWithFlash } from '@open-mercato/ui/backend/utils/flash'
 import { useRouter } from 'next/navigation'
@@ -60,6 +60,49 @@ const PRIORITY_SEGMENT_CLASSES: Record<string, string> = {
   sredni: 'border-primary/20 bg-primary/8 text-primary',
   wysoki: 'border-[#fc3c00]/20 bg-[#fff0eb] text-[#982400]',
   krytyczny: 'border-destructive/30 bg-destructive/10 text-destructive',
+}
+
+const FIELD_INPUT_CLASS =
+  'w-full min-h-11 rounded-none border border-input bg-background px-3 py-2 text-sm shadow-none outline-none transition-[color,box-shadow,border-color] focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground'
+
+function FormCard({
+  title,
+  children,
+  className,
+}: {
+  title: string
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <section className={['rounded-lg border bg-card px-4 py-4 sm:px-5 sm:py-5', className].filter(Boolean).join(' ')}>
+      <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{title}</h2>
+      <div className="mt-4">{children}</div>
+    </section>
+  )
+}
+
+function FieldFrame({
+  label,
+  required,
+  error,
+  children,
+}: {
+  label: string
+  required?: boolean
+  error?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="text-sm font-medium text-foreground">
+        {label}
+        {required ? <span className="text-destructive"> *</span> : null}
+      </div>
+      {children}
+      {error ? <div className="text-xs text-destructive">{error}</div> : null}
+    </div>
+  )
 }
 
 function SegmentedSelectField({
@@ -285,196 +328,194 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
     return toComboboxOptions(await fetchLookupItems('subcontractors', query ?? '', { project_id: projectId }))
   }, [])
 
-  const fields = React.useMemo<CrudField[]>(() => [
-    {
-      id: 'claim_number',
-      label: 'Numer zgloszenia',
-      type: 'custom',
-      component: ({ value }) => (
-        <input
-          type="text"
-          readOnly
-          aria-readonly="true"
-          value={typeof value === 'string' && value.trim() ? value : 'Nadany automatycznie po zapisie'}
-          className="w-full rounded-none border border-input bg-muted px-3 py-2 text-sm font-medium text-foreground"
-        />
-      ),
-    },
-    {
-      id: 'project_id',
-      label: 'Projekt',
-      type: 'custom',
-      required: true,
-      component: ({ value, setValue, setFormValue }) => (
-        <div className="relative">
-          <HiddenInitialFocusTarget />
-          <ComboboxInput
-            value={typeof value === 'string' ? value : ''}
-            suggestions={toComboboxOptions(lookups?.projects ?? [])}
-            loadSuggestions={loadProjectOptions}
-            placeholder="Wybierz projekt"
-            disabled={mode === 'edit'}
-            allowCustomValues={false}
-            resolveLabel={(nextValue) => (lookups?.projects ?? []).find((item) => item.id === nextValue)?.label ?? nextValue}
-            resolveDescription={(nextValue) => (lookups?.projects ?? []).find((item) => item.id === nextValue)?.description ?? null}
-            onChange={(nextValue) => {
-              setValue(nextValue || undefined)
-              setFormValue?.('subcontractor_id', undefined)
-              loadSubcontractors(nextValue).catch((err: unknown) => {
-                setError(err instanceof Error ? err.message : 'Nie udalo sie zaladowac podwykonawcow')
-              })
-            }}
-          />
-        </div>
-      ),
-    },
-    { id: 'title', label: 'Tytul', type: 'text', required: true },
-    { id: 'bas_number', label: 'Numer BAS', type: 'text', required: true },
-    {
-      id: 'status_key',
-      label: 'Status',
-      type: 'custom',
-      required: true,
-      component: ({ value, setValue }) => (
-        <SegmentedSelectField
-          value={value}
-          options={toFieldOptions(lookups?.statuses ?? [])}
-          onChange={(nextValue) => setValue(nextValue)}
-          colorMap={STATUS_SEGMENT_CLASSES}
-        />
-      ),
-    },
-    {
-      id: 'priority_key',
-      label: 'Pilnosc',
-      type: 'custom',
-      required: true,
-      component: ({ value, setValue }) => (
-        <SegmentedSelectField
-          value={value}
-          options={toFieldOptions(lookups?.priorities ?? [])}
-          onChange={(nextValue) => setValue(nextValue)}
-          colorMap={PRIORITY_SEGMENT_CLASSES}
-        />
-      ),
-    },
-    {
-      id: 'category_key',
-      label: 'Kategoria',
-      type: 'select',
-      required: true,
-      options: toFieldOptions(lookups?.categories ?? []),
-    },
-    { id: 'issue_description', label: 'Opis usterki', type: 'textarea', required: true },
-    { id: 'location_text', label: 'Lokalizacja', type: 'text', required: true },
-    {
-      id: 'assigned_user_id',
-      label: 'Przypisana osoba',
-      type: 'custom',
-      component: ({ value, setValue }) => (
-        <ComboboxInput
-          value={typeof value === 'string' ? value : ''}
-          suggestions={toComboboxOptions(lookups?.users ?? [])}
-          loadSuggestions={loadUserOptions}
-          placeholder="Wybierz osobe"
-          allowCustomValues={false}
-          resolveLabel={(nextValue) => (lookups?.users ?? []).find((item) => item.id === nextValue)?.label ?? nextValue}
-          resolveDescription={(nextValue) => (lookups?.users ?? []).find((item) => item.id === nextValue)?.description ?? null}
-          onChange={(nextValue) => setValue(nextValue || undefined)}
-        />
-      ),
-    },
-    {
-      id: 'subcontractor_id',
-      label: 'Podwykonawca',
-      type: 'custom',
-      component: ({ value, values, setValue }) => {
-        const projectId = typeof values?.project_id === 'string' ? values.project_id : ''
-        return (
-          <ComboboxInput
-            value={typeof value === 'string' ? value : ''}
-            suggestions={toComboboxOptions(subcontractors)}
-            disabled={!projectId || subcontractorsLoading}
-            loadSuggestions={(query?: string) => loadSubcontractorOptions(query, projectId)}
-            placeholder={projectId ? 'Wybierz podwykonawce' : 'Najpierw wybierz projekt'}
-            allowCustomValues={false}
-            resolveLabel={(nextValue) => subcontractors.find((item) => item.id === nextValue)?.label ?? nextValue}
-            resolveDescription={(nextValue) => subcontractors.find((item) => item.id === nextValue)?.description ?? null}
-            onChange={(nextValue) => setValue(nextValue || undefined)}
-          />
-        )
-      },
-    },
-    {
-      id: 'reported_at',
-      label: 'Data zgloszenia',
-      type: 'datetime',
-      required: true,
-    },
-    {
-      id: 'resolved_at',
-      label: 'Data rozwiazania',
-      type: 'datetime',
-    },
-  ], [lookups, subcontractors, subcontractorsLoading, loadProjectOptions, loadSubcontractorOptions, loadSubcontractors, loadUserOptions])
-
   const groups = React.useMemo<CrudFormGroup[]>(() => [
     {
-      id: 'basic',
-      title: 'Dane podstawowe',
-      column: 1,
-      fields: ['claim_number', 'project_id', 'title', 'bas_number', 'status_key', 'priority_key', 'category_key'],
-    },
-    {
-      id: 'description',
-      title: 'Opis',
-      column: 1,
-      fields: ['issue_description', 'location_text'],
-    },
-    {
-      id: 'execution',
-      title: 'Odpowiedzialnosc i realizacja',
-      column: 2,
-      fields: ['assigned_user_id', 'subcontractor_id', 'reported_at', 'resolved_at'],
-    },
-    {
-      id: 'subcontractor_snapshot',
-      title: 'Dane podwykonawcy',
-      column: 2,
-      component: ({ values }) => {
-        const selectedSubcontractorId = typeof values.subcontractor_id === 'string' ? values.subcontractor_id : null
-        const selectedSubcontractor = subcontractors.find((item) => item.id === selectedSubcontractorId)
-        const isHistorical = claimRecord?.subcontractor_id === selectedSubcontractorId
+      id: 'layout',
+      bare: true,
+      component: ({ values, setValue, errors }: {
+        values: Record<string, unknown>
+        setValue: (id: string, value: unknown) => void
+        errors: Record<string, string>
+      }) => {
+        const projectId = typeof values.project_id === 'string' ? values.project_id : ''
+        const claimNumber = typeof values.claim_number === 'string' ? values.claim_number : ''
+        const categoryKey = typeof values.category_key === 'string' ? values.category_key : ''
+        const basNumber = typeof values.bas_number === 'string' ? values.bas_number : ''
+        const statusKey = typeof values.status_key === 'string' ? values.status_key : ''
+        const priorityKey = typeof values.priority_key === 'string' ? values.priority_key : ''
+        const title = typeof values.title === 'string' ? values.title : ''
+        const locationText = typeof values.location_text === 'string' ? values.location_text : ''
+        const issueDescription = typeof values.issue_description === 'string' ? values.issue_description : ''
+        const assignedUserId = typeof values.assigned_user_id === 'string' ? values.assigned_user_id : ''
+        const subcontractorId = typeof values.subcontractor_id === 'string' ? values.subcontractor_id : ''
+        const reportedAtValue = typeof values.reported_at === 'string' && values.reported_at ? new Date(values.reported_at) : null
+        const resolvedAtValue = typeof values.resolved_at === 'string' && values.resolved_at ? new Date(values.resolved_at) : null
+        const selectedSubcontractor = subcontractors.find((item) => item.id === subcontractorId) ?? null
+        const isHistorical = Boolean(claimRecord?.subcontractor_id && claimRecord.subcontractor_id === subcontractorId)
+        const projectOptions = lookups?.projects ?? []
+        const categoryOptions = lookups?.categories ?? []
+        const statusOptions = lookups?.statuses ?? []
+        const priorityOptions = lookups?.priorities ?? []
+        const userOptions = lookups?.users ?? []
+
+        const onProjectChange = (nextValue: string) => {
+          setValue('project_id', nextValue || undefined)
+          setValue('subcontractor_id', undefined)
+          loadSubcontractors(nextValue).catch((err: unknown) => {
+            setError(err instanceof Error ? err.message : 'Nie udalo sie zaladowac podwykonawcow')
+          })
+        }
+
         return (
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <div>Adres: {isHistorical ? (claimRecord?.subcontractor_address ?? '—') : 'Wypelni sie po zapisie'}</div>
-            <div>Email: {isHistorical ? (claimRecord?.subcontractor_email ?? '—') : (selectedSubcontractor?.description ?? 'Wypelni sie po zapisie')}</div>
-            <div>Telefon: {isHistorical ? (claimRecord?.subcontractor_phone ?? '—') : 'Wypelni sie po zapisie'}</div>
-            <div>Osoba kontaktowa: {isHistorical ? (claimRecord?.subcontractor_contact_person ?? '—') : 'Wypelni sie po zapisie'}</div>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+            <FormCard title="Dane podstawowe" className="h-full">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-4">
+                  <FieldFrame label="Projekt" required error={errors.project_id}>
+                    <ComboboxInput
+                      value={projectId}
+                      suggestions={toComboboxOptions(projectOptions)}
+                      loadSuggestions={loadProjectOptions}
+                      placeholder="Wybierz projekt"
+                      disabled={mode === 'edit'}
+                      allowCustomValues={false}
+                      resolveLabel={(nextValue) => projectOptions.find((item) => item.id === nextValue)?.label ?? nextValue}
+                      resolveDescription={(nextValue) => projectOptions.find((item) => item.id === nextValue)?.description ?? null}
+                      onChange={onProjectChange}
+                    />
+                  </FieldFrame>
+                  <FieldFrame label="Kategoria" required error={errors.category_key}>
+                    <select value={categoryKey} className={FIELD_INPUT_CLASS} onChange={(event) => setValue('category_key', event.target.value || undefined)}>
+                      <option value="">Wybierz kategorię</option>
+                      {categoryOptions.map((option) => (
+                        <option key={option.id} value={option.id}>{option.label}</option>
+                      ))}
+                    </select>
+                  </FieldFrame>
+                  <FieldFrame label="Status" required error={errors.status_key}>
+                    <SegmentedSelectField
+                      value={statusKey}
+                      options={statusOptions.map((item) => ({ value: item.id, label: item.label }))}
+                      onChange={(nextValue) => setValue('status_key', nextValue)}
+                      colorMap={STATUS_SEGMENT_CLASSES}
+                    />
+                  </FieldFrame>
+                </div>
+                <div className="space-y-4">
+                  <FieldFrame label="Numer zgłoszenia" error={errors.claim_number}>
+                    <input type="text" readOnly aria-readonly="true" value={claimNumber.trim() ? claimNumber : 'Nadany automatycznie po zapisie'} className="w-full rounded-none border border-input bg-muted px-3 py-2 text-sm font-medium text-foreground" />
+                  </FieldFrame>
+                  <FieldFrame label="Numer BAS" required error={errors.bas_number}>
+                    <input type="text" value={basNumber} onChange={(event) => setValue('bas_number', event.target.value)} placeholder="Wpisz numer BAS" className={FIELD_INPUT_CLASS} />
+                  </FieldFrame>
+                  <FieldFrame label="Pilność" required error={errors.priority_key}>
+                    <SegmentedSelectField
+                      value={priorityKey}
+                      options={priorityOptions.map((item) => ({ value: item.id, label: item.label }))}
+                      onChange={(nextValue) => setValue('priority_key', nextValue)}
+                      colorMap={PRIORITY_SEGMENT_CLASSES}
+                    />
+                  </FieldFrame>
+                </div>
+              </div>
+            </FormCard>
+
+            <FormCard title="Odpowiedzialność i realizacja" className="h-full">
+              <div className="space-y-4">
+                <FieldFrame label="Przypisana osoba" error={errors.assigned_user_id}>
+                  <ComboboxInput
+                    value={assignedUserId}
+                    suggestions={toComboboxOptions(userOptions)}
+                    loadSuggestions={loadUserOptions}
+                    placeholder="Wybierz osobę"
+                    allowCustomValues={false}
+                    resolveLabel={(nextValue) => userOptions.find((item) => item.id === nextValue)?.label ?? nextValue}
+                    resolveDescription={(nextValue) => userOptions.find((item) => item.id === nextValue)?.description ?? null}
+                    onChange={(nextValue) => setValue('assigned_user_id', nextValue || undefined)}
+                  />
+                </FieldFrame>
+                <FieldFrame label="Data zgłoszenia" required error={errors.reported_at}>
+                  <DateTimePicker
+                    value={reportedAtValue}
+                    onChange={(nextValue: Date | null) => setValue('reported_at', nextValue ? nextValue.toISOString() : undefined)}
+                    placeholder="Wybierz datę zgłoszenia"
+                  />
+                </FieldFrame>
+                <FieldFrame label="Data rozwiązania" error={errors.resolved_at}>
+                  <DateTimePicker
+                    value={resolvedAtValue}
+                    onChange={(nextValue: Date | null) => setValue('resolved_at', nextValue ? nextValue.toISOString() : undefined)}
+                    placeholder="Wybierz datę rozwiązania"
+                  />
+                </FieldFrame>
+              </div>
+            </FormCard>
+
+            <FormCard title="Opis" className="h-full">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FieldFrame label="Tytuł" required error={errors.title}>
+                  <input type="text" value={title} onChange={(event) => setValue('title', event.target.value)} placeholder="Wpisz tytuł zgłoszenia" className={FIELD_INPUT_CLASS} />
+                </FieldFrame>
+                <FieldFrame label="Lokalizacja" required error={errors.location_text}>
+                  <input type="text" value={locationText} onChange={(event) => setValue('location_text', event.target.value)} placeholder="Wpisz lokalizację" className={FIELD_INPUT_CLASS} />
+                </FieldFrame>
+                <div className="sm:col-span-2">
+                  <FieldFrame label="Opis usterki" required error={errors.issue_description}>
+                    <textarea
+                      value={issueDescription}
+                      onChange={(event) => setValue('issue_description', event.target.value)}
+                      placeholder="Opisz problem"
+                      rows={8}
+                      className={`${FIELD_INPUT_CLASS} min-h-[12rem] resize-y`}
+                    />
+                  </FieldFrame>
+                </div>
+              </div>
+            </FormCard>
+
+            <FormCard title="Dane podwykonawcy" className="h-full">
+              <div className="space-y-4">
+                <FieldFrame label="Podwykonawca" error={errors.subcontractor_id}>
+                  <ComboboxInput
+                    value={subcontractorId}
+                    suggestions={toComboboxOptions(subcontractors)}
+                    disabled={!projectId || subcontractorsLoading}
+                    loadSuggestions={(query?: string) => loadSubcontractorOptions(query, projectId)}
+                    placeholder={projectId ? 'Wybierz podwykonawcę' : 'Najpierw wybierz projekt'}
+                    allowCustomValues={false}
+                    resolveLabel={(nextValue) => subcontractors.find((item) => item.id === nextValue)?.label ?? nextValue}
+                    resolveDescription={(nextValue) => subcontractors.find((item) => item.id === nextValue)?.description ?? null}
+                    onChange={(nextValue) => setValue('subcontractor_id', nextValue || undefined)}
+                  />
+                </FieldFrame>
+                <div className="space-y-2 rounded-none border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+                  <div>Adres: {isHistorical ? (claimRecord?.subcontractor_address ?? '—') : 'Uzupełni się po zapisie'}</div>
+                  <div>Email: {isHistorical ? (claimRecord?.subcontractor_email ?? '—') : (selectedSubcontractor?.description ?? 'Uzupełni się po zapisie')}</div>
+                  <div>Telefon: {isHistorical ? (claimRecord?.subcontractor_phone ?? '—') : 'Uzupełni się po zapisie'}</div>
+                  <div>Osoba kontaktowa: {isHistorical ? (claimRecord?.subcontractor_contact_person ?? '—') : 'Uzupełni się po zapisie'}</div>
+                </div>
+              </div>
+            </FormCard>
+
+            <FormCard title="Załączniki" className="h-full lg:col-span-2">
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  {mode === 'create'
+                    ? 'Pliki zapisują się tymczasowo od razu po dodaniu lub usunięciu. Po utworzeniu zgłoszenia zostaną przypięte do rekordu.'
+                    : 'Pliki zapisują się od razu po dodaniu lub usunięciu. Zmiany formularza nadal wymagają osobnego zapisu.'}
+                </p>
+                <AttachmentsSection
+                  entityId={mode === 'create' ? ATTACHMENTS_LIBRARY_ENTITY_ID : WARRANTY_CLAIM_ENTITY_ID}
+                  recordId={mode === 'create' ? draftAttachmentRecordId : claimId ?? null}
+                  showHeader={false}
+                />
+              </div>
+            </FormCard>
           </div>
         )
       },
     },
-    {
-      id: 'attachments',
-      title: 'Zalaczniki',
-      column: 2,
-      component: () => (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">
-            {mode === 'create'
-              ? 'Pliki zapisuja sie tymczasowo od razu po dodaniu lub usunieciu. Po utworzeniu zgloszenia zostana przypiete do rekordu.'
-              : 'Pliki zapisuja sie od razu po dodaniu lub usunieciu. Zmiany formularza nadal wymagaja osobnego zapisu.'}
-          </p>
-          <AttachmentsSection
-            entityId={mode === 'create' ? ATTACHMENTS_LIBRARY_ENTITY_ID : WARRANTY_CLAIM_ENTITY_ID}
-            recordId={mode === 'create' ? draftAttachmentRecordId : claimId ?? null}
-            showHeader={false}
-          />
-        </div>
-      ),
-    },
-  ], [claimId, claimRecord, draftAttachmentRecordId, mode, subcontractors])
+  ], [claimRecord, loadProjectOptions, loadSubcontractorOptions, loadSubcontractors, loadUserOptions, lookups, mode, subcontractors, subcontractorsLoading])
 
   const handleSubmit = React.useCallback(async (values: FormValues) => {
     const { claim_number: _claimNumber, ...restValues } = values
@@ -511,12 +552,12 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
           title={mode === 'create' ? 'Nowe zgloszenie gwarancyjne' : 'Edycja zgloszenia gwarancyjnego'}
           backHref="/backend/warranty-claims"
           entityId="warranty_claims:claim"
-          fields={fields}
-        groups={groups}
-        initialValues={initialValues ?? undefined}
-        isLoading={loading || !lookups}
-        submitLabel={mode === 'create' ? 'Utworz zgloszenie' : 'Zapisz zmiany'}
-        cancelHref="/backend/warranty-claims"
+          fields={[]}
+          groups={groups}
+          initialValues={initialValues ?? undefined}
+          isLoading={loading || !lookups}
+          submitLabel={mode === 'create' ? 'Utworz zgloszenie' : 'Zapisz zmiany'}
+          cancelHref="/backend/warranty-claims"
           successRedirect={`/backend/warranty-claims?flash=${encodeURIComponent(mode === 'create' ? 'Zgloszenie utworzone' : 'Zgloszenie zapisane')}&type=success`}
           onSubmit={handleSubmit}
           onDelete={mode === 'edit' && claimId ? async () => {
@@ -528,3 +569,4 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
     </Page>
   )
 }
+
