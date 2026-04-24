@@ -112,7 +112,7 @@ export const { metadata, GET, POST, PUT, DELETE } = makeCrudRoute<
     schema: warrantyClaimCreateSchema,
     mapToEntity: (input, ctx) => {
       const scope = getScope(ctx)
-      return mapPreparedClaimToEntity(input as PreparedClaimInput, scope)
+      return mapPreparedClaimToEntity(input as PreparedClaimInput & { claim_number: number }, scope)
     },
     response: (entity: WarrantyClaim) => serializeClaimRecord(entity),
   },

@@ -2,7 +2,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { Dictionary, DictionaryEntry } from '@open-mercato/core/modules/dictionaries/data/entities'
 import { User } from '@open-mercato/core/modules/auth/data/entities'
-import { WARRANTY_DICTIONARY_KEYS, WARRANTY_STATUS_KEYS } from './constants'
+import { WARRANTY_DEFAULT_CREATE_PRIORITY_KEY, WARRANTY_DICTIONARY_KEYS, WARRANTY_STATUS_KEYS } from './constants'
 import { formatWarrantyClaimNumber } from './format'
 import type { WarrantyClaimCreateInput, WarrantyClaimUpdateInput } from '../data/validators'
 import { Project, ProjectSubcontractor, WarrantyClaim } from '../data/entities'
@@ -13,6 +13,36 @@ type Scope = {
 }
 
 type ClaimMutationInput = WarrantyClaimCreateInput | WarrantyClaimUpdateInput
+
+export type PortalPreparedClaimInput = {
+  title: string
+  issueDescription: string
+  locationText?: string
+  priorityKey?: string
+  categoryKey: string
+  projectId: string
+}
+
+type ClaimEntityInput = {
+  project_id: string
+  claim_number: number
+  title: string
+  issue_description: string
+  location_text: string
+  priority_key: string
+  category_key: string
+  bas_number: string
+  status_key: string
+  reported_at: string
+  assigned_user_id?: string | null
+  resolved_at?: string | null
+  subcontractor_id?: string | null
+  subcontractor_name?: string | null
+  subcontractor_address?: string | null
+  subcontractor_email?: string | null
+  subcontractor_phone?: string | null
+  subcontractor_contact_person?: string | null
+}
 
 export function formatClaimNumber(value: number | null | undefined): string {
   return formatWarrantyClaimNumber(value)
@@ -230,7 +260,7 @@ export async function prepareClaimInput<T extends ClaimMutationInput>(
   scope: Scope,
   input: T,
   existing?: WarrantyClaim | null,
-): Promise<PreparedClaimInput<T>> {
+): Promise<PreparedClaimInput<T> & { claim_number: number }> {
   const prepared: PreparedClaimInput<T> = {
     ...input,
     title: cleanText(input.title),
@@ -278,10 +308,48 @@ export async function prepareClaimInput<T extends ClaimMutationInput>(
   prepared.resolved_at = resolveResolvedAt(prepared.status_key, currentResolvedAt)
   prepared.claim_number = existing?.claimNumber ?? await resolveNextClaimNumber(em, scope, prepared.project_id)
 
-  return prepared
+  return prepared as PreparedClaimInput<T> & { claim_number: number }
 }
 
-export function mapPreparedClaimToEntity<T extends ClaimMutationInput>(input: PreparedClaimInput<T>, scope: Scope) {
+export async function preparePortalClaimInput(
+  em: EntityManager,
+  scope: Scope,
+  input: PortalPreparedClaimInput,
+): Promise<ClaimEntityInput> {
+  const projectId = cleanText(input.projectId)
+  const title = cleanText(input.title)
+  const issueDescription = cleanText(input.issueDescription)
+  const locationText = cleanText(input.locationText ?? '')
+  const priorityKey = cleanText(input.priorityKey ?? WARRANTY_DEFAULT_CREATE_PRIORITY_KEY)
+  const categoryKey = cleanText(input.categoryKey)
+
+  const project = await resolveProject(em, scope, projectId)
+  if (!project) {
+    throw new CrudHttpError(400, { error: 'Selected project does not exist or is inactive' })
+  }
+
+  await assertDictionaryEntryExists(em, scope, WARRANTY_DICTIONARY_KEYS.status, WARRANTY_STATUS_KEYS.pending)
+  await assertDictionaryEntryExists(em, scope, WARRANTY_DICTIONARY_KEYS.priority, priorityKey)
+  await assertDictionaryEntryExists(em, scope, WARRANTY_DICTIONARY_KEYS.category, categoryKey)
+
+  return {
+    title,
+    issue_description: issueDescription,
+    location_text: locationText,
+    priority_key: priorityKey,
+    category_key: categoryKey,
+    bas_number: '',
+    status_key: WARRANTY_STATUS_KEYS.pending,
+    reported_at: new Date().toISOString(),
+    project_id: projectId,
+    assigned_user_id: null,
+    resolved_at: null,
+    subcontractor_id: null,
+    claim_number: await resolveNextClaimNumber(em, scope, projectId),
+  }
+}
+
+export function mapPreparedClaimToEntity(input: ClaimEntityInput, scope: Scope) {
   return {
     organizationId: scope.organizationId,
     tenantId: scope.tenantId,
