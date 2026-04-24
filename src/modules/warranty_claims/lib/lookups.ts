@@ -99,6 +99,10 @@ export async function getSubcontractorOptions(
       id: row.id,
       label: row.name,
       description: row.contactPerson || row.email || row.phone || null,
+      address: row.address ?? null,
+      email: row.email ?? null,
+      phone: row.phone ?? null,
+      contactPerson: row.contactPerson ?? null,
     }))
 }
 
@@ -150,5 +154,9 @@ export async function getHistoricalSubcontractorOption(
     id: claim.subcontractorId,
     label: `${claim.subcontractorName} (historyczne)`,
     description: claim.subcontractorEmail || claim.subcontractorPhone || null,
+    address: claim.subcontractorAddress ?? null,
+    email: claim.subcontractorEmail ?? null,
+    phone: claim.subcontractorPhone ?? null,
+    contactPerson: claim.subcontractorContactPerson ?? null,
   }
 }

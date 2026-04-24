@@ -96,6 +96,10 @@ export type LookupOption = {
   id: string
   label: string
   description?: string | null
+  address?: string | null
+  email?: string | null
+  phone?: string | null
+  contactPerson?: string | null
 }
 
 export type LookupBundle = {

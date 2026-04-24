@@ -76,6 +76,24 @@ function FormCard({
   )
 }
 
+function formatPreviewValue(value?: string | null) {
+  const nextValue = value?.trim()
+  return nextValue ? nextValue : '—'
+}
+
+function buildClaimSubcontractorOption(claim?: WarrantyClaimRecord | null): LookupOption | null {
+  if (!claim?.subcontractor_id || !claim.subcontractor_name) return null
+  return {
+    id: claim.subcontractor_id,
+    label: claim.subcontractor_name,
+    description: claim.subcontractor_contact_person || claim.subcontractor_email || claim.subcontractor_phone || null,
+    address: claim.subcontractor_address ?? null,
+    email: claim.subcontractor_email ?? null,
+    phone: claim.subcontractor_phone ?? null,
+    contactPerson: claim.subcontractor_contact_person ?? null,
+  }
+}
+
 function FieldFrame({
   label,
   required,
@@ -95,6 +113,58 @@ function FieldFrame({
       </div>
       {children}
       {error ? <div className="text-xs text-destructive">{error}</div> : null}
+    </div>
+  )
+}
+
+function DetailTile({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="space-y-1">
+      <div className="text-sm text-muted-foreground">{label}</div>
+      <div className="text-sm font-medium text-foreground">{value}</div>
+    </div>
+  )
+}
+
+function SubcontractorDetailsPanel({
+  subcontractor,
+  loading,
+  projectSelected,
+}: {
+  subcontractor: LookupOption | null
+  loading: boolean
+  projectSelected: boolean
+}) {
+  const helperText = loading
+    ? 'Ładowanie danych podwykonawców...'
+    : subcontractor
+      ? 'Dane poniżej aktualizują się po zmianie wyboru.'
+      : projectSelected
+        ? 'Wybierz podwykonawcę, aby zobaczyć jego dane.'
+        : 'Najpierw wybierz projekt, aby załadować listę podwykonawców.'
+
+  return (
+    <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
+      <div className="space-y-1">
+        <div className="text-sm font-medium text-foreground">
+          {subcontractor?.label ?? 'Dane wybranego podwykonawcy'}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {subcontractor?.description ?? helperText}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <DetailTile label="Adres" value={formatPreviewValue(subcontractor?.address)} />
+        <DetailTile label="Email" value={formatPreviewValue(subcontractor?.email)} />
+        <DetailTile label="Telefon" value={formatPreviewValue(subcontractor?.phone)} />
+        <DetailTile label="Osoba kontaktowa" value={formatPreviewValue(subcontractor?.contactPerson)} />
+      </div>
     </div>
   )
 }
@@ -296,13 +366,14 @@ export default function WarrantyClaimForm({
         currentClaim?.subcontractor_id
         && currentClaim.project_id === projectId
         && !nextItems.some((item) => item.id === currentClaim.subcontractor_id)
-        && currentClaim.subcontractor_name
       ) {
-        nextItems.push({
-          id: currentClaim.subcontractor_id,
-          label: `${currentClaim.subcontractor_name} (historyczne)`,
-          description: currentClaim.subcontractor_email || currentClaim.subcontractor_phone || null,
-        })
+        const historicalOption = buildClaimSubcontractorOption(currentClaim)
+        if (historicalOption) {
+          nextItems.push({
+            ...historicalOption,
+            label: `${historicalOption.label} (historyczne)`,
+          })
+        }
       }
       setSubcontractors(nextItems)
     } finally {
@@ -340,7 +411,7 @@ export default function WarrantyClaimForm({
         const reportedAtValue = typeof values.reported_at === 'string' && values.reported_at ? new Date(values.reported_at) : null
         const resolvedAtValue = typeof values.resolved_at === 'string' && values.resolved_at ? new Date(values.resolved_at) : null
         const selectedSubcontractor = subcontractors.find((item) => item.id === subcontractorId) ?? null
-        const isHistorical = Boolean(claimRecord?.subcontractor_id && claimRecord.subcontractor_id === subcontractorId)
+        const selectedSubcontractorDetails = selectedSubcontractor ?? (claimRecord?.subcontractor_id === subcontractorId ? buildClaimSubcontractorOption(claimRecord) : null)
         const projectOptions = lookups?.projects ?? []
         const categoryOptions = lookups?.categories ?? []
         const statusOptions = lookups?.statuses ?? []
@@ -474,12 +545,11 @@ export default function WarrantyClaimForm({
                     onChange={(nextValue) => setValue('subcontractor_id', nextValue || undefined)}
                   />
                 </FieldFrame>
-                <div className="space-y-2 rounded-none border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
-                  <div>Adres: {isHistorical ? (claimRecord?.subcontractor_address ?? '—') : 'Uzupełni się po zapisie'}</div>
-                  <div>Email: {isHistorical ? (claimRecord?.subcontractor_email ?? '—') : (selectedSubcontractor?.description ?? 'Uzupełni się po zapisie')}</div>
-                  <div>Telefon: {isHistorical ? (claimRecord?.subcontractor_phone ?? '—') : 'Uzupełni się po zapisie'}</div>
-                  <div>Osoba kontaktowa: {isHistorical ? (claimRecord?.subcontractor_contact_person ?? '—') : 'Uzupełni się po zapisie'}</div>
-                </div>
+                <SubcontractorDetailsPanel
+                  subcontractor={selectedSubcontractorDetails}
+                  loading={subcontractorsLoading && Boolean(projectId)}
+                  projectSelected={Boolean(projectId)}
+                />
               </div>
             </FormCard>
 
