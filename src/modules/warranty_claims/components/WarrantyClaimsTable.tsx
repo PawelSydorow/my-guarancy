@@ -30,7 +30,7 @@ export default function WarrantyClaimsTable() {
   const { confirm, ConfirmDialogElement } = useConfirmDialog()
   const [page, setPage] = React.useState(1)
   const [sorting, setSorting] = React.useState<SortingState>([{ id: 'updated_at', desc: true }])
-  const [searchTitle, setSearchTitle] = React.useState('')
+  const [searchQuery, setSearchQuery] = React.useState('')
   const [filters, setFilters] = React.useState<FilterValues>({})
 
   const lookupsQuery = useQuery<LookupBundle>({
@@ -49,7 +49,7 @@ export default function WarrantyClaimsTable() {
       sortField: sorting[0]?.id || 'updated_at',
       sortDir: sorting[0]?.desc ? 'desc' : 'asc',
     })
-    if (searchTitle.trim()) params.set('title', searchTitle.trim())
+    if (searchQuery.trim()) params.set('search', searchQuery.trim())
 
     const addIfValue = (key: string, value: unknown) => {
       if (typeof value === 'string' && value.trim()) params.set(key, value.trim())
@@ -71,7 +71,7 @@ export default function WarrantyClaimsTable() {
     }
 
     return Object.fromEntries(params.entries())
-  }, [filters, page, searchTitle, sorting])
+  }, [filters, page, searchQuery, sorting])
 
   const claimsQuery = useQuery<ClaimsResponse>({
     queryKey: ['warranty-claims', queryParams],
@@ -254,9 +254,9 @@ export default function WarrantyClaimsTable() {
         )}
         columns={columns}
         data={claimsQuery.data?.items ?? []}
-        searchValue={searchTitle}
+        searchValue={searchQuery}
         onSearchChange={(value) => {
-          setSearchTitle(value)
+          setSearchQuery(value)
           setPage(1)
         }}
         filters={filtersDef}

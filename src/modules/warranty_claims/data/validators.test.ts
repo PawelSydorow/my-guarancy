@@ -1,4 +1,4 @@
-import { warrantyClaimCreateSchema, warrantyClaimUpdateSchema } from './validators'
+import { warrantyClaimCreateSchema, warrantyClaimListSchema, warrantyClaimUpdateSchema } from './validators'
 
 const baseValidClaim = {
   title: 'Naprawa elewacji',
@@ -47,6 +47,17 @@ describe('warranty claim validators', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.title?.[0]).toBe('To pole jest wymagane')
+    }
+  })
+
+  it('accepts claim number search text as a string', () => {
+    const result = warrantyClaimListSchema.safeParse({
+      claim_number: '007',
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.claim_number).toBe('007')
     }
   })
 })
