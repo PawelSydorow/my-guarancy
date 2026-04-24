@@ -494,6 +494,36 @@ export default function WarrantyClaimForm({
                   entityId={mode === 'create' ? ATTACHMENTS_LIBRARY_ENTITY_ID : WARRANTY_CLAIM_ENTITY_ID}
                   recordId={mode === 'create' ? draftAttachmentRecordId : claimId ?? null}
                   showHeader={false}
+                  compact
+                  className={[
+                    'space-y-1.5',
+                    '[&_.grid]:gap-1.5',
+                    '[&_.grid>button]:rounded-md',
+                    '[&_.grid>button>div:first-child]:aspect-[4/3]',
+                    '[&_.grid>button>div:first-child]:flex',
+                    '[&_.grid>button>div:first-child]:items-center',
+                    '[&_.grid>button>div:first-child]:justify-center',
+                    '[&_.grid>button>div:first-child]:overflow-hidden',
+                    '[&_.grid>button>div:first-child]:p-0',
+                    '[&_.grid>button>div:first-child>img]:h-full',
+                    '[&_.grid>button>div:first-child>img]:w-full',
+                    '[&_.grid>button>div:first-child>img]:object-cover',
+                    '[&_.grid>button>div:first-child>img]:max-h-none',
+                    '[&_.grid>button>div:first-child>img]:max-w-none',
+                    '[&_.grid>button>div:first-child>div]:h-full',
+                    '[&_.grid>button>div:first-child>div]:w-full',
+                    '[&_.grid>button>div:last-child]:p-1.5',
+                    '[&_.grid>button>div:last-child>div:first-child]:text-[10px]',
+                    '[&_.grid>button>div:last-child>div:last-child]:text-[9px]',
+                    '[&_.border-dashed]:px-3',
+                    '[&_.border-dashed]:py-3',
+                    '[&_.border-dashed>svg]:h-4',
+                    '[&_.border-dashed>svg]:w-4',
+                    '[&_.border-dashed>.mt-2]:mt-1',
+                    '[&_.border-dashed>.mt-4]:mt-1.5',
+                    '[&_.border-dashed>.mt-4]:px-2',
+                    '[&_.border-dashed>.mt-4]:py-1',
+                  ].join(' ')}
                 />
               </div>
             </FormCard>

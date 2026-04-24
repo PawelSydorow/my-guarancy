@@ -8,9 +8,11 @@ const updateCrudMock = jest.fn()
 const comboboxInputMock = jest.fn((props: { placeholder?: string; disabled?: boolean }) => (
   <div data-testid={`combobox-${props.placeholder ?? 'unknown'}`} data-disabled={props.disabled ? 'true' : 'false'} />
 ))
-const attachmentsSectionMock = jest.fn(({ entityId, recordId }: { entityId: string; recordId: string | null }) => (
-  <div data-testid="attachments-section">{`${entityId}:${recordId ?? 'missing-record'}`}</div>
-))
+const attachmentsSectionMock = jest.fn(
+  ({ entityId, recordId, compact, className }: { entityId: string; recordId: string | null; compact?: boolean; className?: string }) => (
+    <div data-testid="attachments-section" data-classname={className ?? ''}>{`${entityId}:${recordId ?? 'missing-record'}:${compact ? 'compact' : 'normal'}`}</div>
+  ),
+)
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
@@ -22,7 +24,7 @@ jest.mock('@open-mercato/ui/backend/Page', () => ({
 }))
 
 jest.mock('@open-mercato/ui/backend/detail', () => ({
-  AttachmentsSection: (props: { entityId: string; recordId: string | null; showHeader?: boolean }) => attachmentsSectionMock(props),
+  AttachmentsSection: (props: { entityId: string; recordId: string | null; showHeader?: boolean; compact?: boolean }) => attachmentsSectionMock(props),
 }))
 
 jest.mock('@open-mercato/ui/backend/inputs', () => ({
@@ -134,7 +136,8 @@ describe('WarrantyClaimForm attachments', () => {
     await waitFor(() => {
       expect(screen.queryByText('Zalaczniki')).not.toBeNull()
       expect(screen.getByDisplayValue('Nadany automatycznie po zapisie')).not.toBeNull()
-      expect(screen.getByTestId('attachments-section').textContent).toContain('attachments:library:warranty-claim-create:')
+      expect(screen.getByTestId('attachments-section').textContent).toContain('attachments:library:warranty-claim-create::compact')
+      expect(screen.getByTestId('attachments-section').getAttribute('data-classname')).toContain('object-cover')
     })
   })
 
@@ -176,7 +179,8 @@ describe('WarrantyClaimForm attachments', () => {
     await waitFor(() => {
       expect(screen.queryByText('Zalaczniki')).not.toBeNull()
       expect(screen.getByDisplayValue('007')).not.toBeNull()
-      expect(screen.getByTestId('attachments-section').textContent).toContain('warranty_claims:claim:claim-1')
+      expect(screen.getByTestId('attachments-section').textContent).toContain('warranty_claims:claim:claim-1:compact')
+      expect(screen.getByTestId('attachments-section').getAttribute('data-classname')).toContain('object-cover')
       expect(screen.getByTestId('combobox-Wybierz projekt').getAttribute('data-disabled')).toBe('true')
       expect(document.querySelector('[aria-hidden="true"]')).not.toBeNull()
     })
