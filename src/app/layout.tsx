@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Sans, JetBrains_Mono } from 'next/font/google'
+import { DM_Sans, Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { bootstrap } from '@/bootstrap'
 import { AppProviders } from '@/components/AppProviders'
@@ -11,6 +11,11 @@ import { detectLocale, loadDictionary } from '@open-mercato/shared/lib/i18n/serv
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-bremer-sans',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
 })
 
 const jetBrainsMono = JetBrains_Mono({
@@ -57,7 +62,7 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${dmSans.variable} ${jetBrainsMono.variable} antialiased`}
+        className={`${dmSans.variable} ${inter.variable} ${jetBrainsMono.variable} antialiased`}
         suppressHydrationWarning
         data-gramm="false"
       >

@@ -4,10 +4,12 @@ import type { ReactNode } from 'react'
 import type { Locale } from '@open-mercato/shared/lib/i18n/config'
 import type { Dict } from '@open-mercato/shared/lib/i18n/context'
 import { I18nProvider } from '@open-mercato/shared/lib/i18n/context'
-import { ThemeProvider, FrontendLayout, QueryProvider, AuthFooter } from '@open-mercato/ui'
+import { ThemeProvider, FrontendLayout, QueryProvider } from '@open-mercato/ui'
 import { ClientBootstrapProvider } from '@/components/ClientBootstrap'
+import { AppAuthFooter } from '@/components/AppAuthFooter'
 import { GlobalNoticeBars } from '@/components/GlobalNoticeBars'
 import { ComponentOverridesBootstrap } from '@/components/ComponentOverridesBootstrap'
+import AuthPageChrome from '@/components/AuthPageChrome'
 
 type AppProvidersProps = {
   children: ReactNode
@@ -24,7 +26,8 @@ export function AppProviders({ children, locale, dict, demoModeEnabled, noticeBa
         <ComponentOverridesBootstrap>
           <ThemeProvider>
             <QueryProvider>
-              <FrontendLayout footer={<AuthFooter />}>{children}</FrontendLayout>
+              <AuthPageChrome />
+              <FrontendLayout footer={<AppAuthFooter />}>{children}</FrontendLayout>
               {noticeBarsEnabled ? <GlobalNoticeBars demoModeEnabled={demoModeEnabled} /> : null}
             </QueryProvider>
           </ThemeProvider>
