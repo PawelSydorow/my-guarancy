@@ -146,6 +146,21 @@ TODO: Fix that latter to have reference by the package names
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgb(255 255 255 / 0.12);
   --sidebar-ring: rgb(0 103 255 / 0.5);
+  --portal-sidebar-bg-start: #ffffff;
+  --portal-sidebar-bg-mid: #ffffff;
+  --portal-sidebar-bg-end: #ffffff;
+  --portal-sidebar-accent: transparent;
+  --portal-sidebar-accent-alt: transparent;
+  --portal-sidebar-grid-primary: transparent;
+  --portal-sidebar-grid-secondary: transparent;
+  --portal-sidebar-border: rgb(1 1 26 / 0.10);
+  --portal-sidebar-text: oklch(0.145 0 0);
+  --portal-sidebar-muted: rgb(1 1 26 / 0.62);
+  --portal-sidebar-muted-strong: rgb(1 1 26 / 0.52);
+  --portal-sidebar-hover: rgb(1 1 26 / 0.04);
+  --portal-sidebar-active-start: #01011a;
+  --portal-sidebar-active-end: #01011a;
+  --portal-sidebar-active-ring: #01011a;
 
   /* ═══ Design System: Semantic Status Tokens — Light Mode ═══ */
   /* Error (hue ~25° — aligned with --destructive) */
@@ -222,6 +237,21 @@ TODO: Fix that latter to have reference by the package names
   --sidebar-accent-foreground: #f0f0f8;
   --sidebar-border: rgb(255 255 255 / 0.12);
   --sidebar-ring: rgb(51 135 255 / 0.5);
+  --portal-sidebar-bg-start: #ffffff;
+  --portal-sidebar-bg-mid: #ffffff;
+  --portal-sidebar-bg-end: #ffffff;
+  --portal-sidebar-accent: transparent;
+  --portal-sidebar-accent-alt: transparent;
+  --portal-sidebar-grid-primary: transparent;
+  --portal-sidebar-grid-secondary: transparent;
+  --portal-sidebar-border: rgb(1 1 26 / 0.10);
+  --portal-sidebar-text: oklch(0.145 0 0);
+  --portal-sidebar-muted: rgb(1 1 26 / 0.62);
+  --portal-sidebar-muted-strong: rgb(1 1 26 / 0.52);
+  --portal-sidebar-hover: rgb(1 1 26 / 0.04);
+  --portal-sidebar-active-start: #01011a;
+  --portal-sidebar-active-end: #01011a;
+  --portal-sidebar-active-ring: #01011a;
 
   /* ═══ Design System: Semantic Status Tokens — Dark Mode ═══ */
   /* Error */
@@ -739,24 +769,27 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
   }
 
   [data-portal-handle="section:portal:sidebar"] {
-    background:
-      radial-gradient(circle at top left, rgb(71 136 255 / 0.26), transparent 10rem),
-      radial-gradient(circle at bottom right, rgb(252 60 0 / 0.16), transparent 8rem),
-      linear-gradient(180deg, #25498c 0%, #1d376b 52%, #16284f 100%);
-    color: #f8fbff;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    background: var(--portal-sidebar-bg-start);
+    color: var(--portal-sidebar-text);
     position: relative;
     overflow: hidden;
+    border-color: var(--portal-sidebar-border);
+    z-index: 20;
   }
 
   [data-portal-handle="section:portal:sidebar"]::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(90deg, rgb(255 255 255 / 0.08) 1px, transparent 1px),
-      linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px);
-    background-size: 22px 22px;
-    opacity: 0.22;
     pointer-events: none;
   }
 
@@ -773,38 +806,51 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
 
   [data-portal-handle="section:portal:sidebar"] .border-b,
   [data-portal-handle="section:portal:sidebar"] .border-t {
-    border-color: rgb(255 255 255 / 0.12);
+    border-color: var(--portal-sidebar-border);
   }
 
   [data-portal-handle="section:portal:sidebar"] [data-menu-item-id] {
-    border-radius: 0.85rem;
-    border: 1px solid transparent;
-    color: #f8fbff;
-    padding-block: 0.75rem;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: var(--portal-sidebar-text);
   }
 
   [data-portal-handle="section:portal:sidebar"] [data-menu-item-id]:hover {
-    background: rgb(255 255 255 / 0.1);
-    border-color: transparent;
-    color: #ffffff;
-    transform: translateX(1px);
-  }
-
-  [data-portal-handle="section:portal:sidebar"] .bg-foreground {
-    background: linear-gradient(90deg, rgb(0 103 255 / 0.42), rgb(0 103 255 / 0.16));
-    border-color: transparent;
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+    background: var(--portal-sidebar-hover);
     color: #ffffff;
   }
 
-  [data-portal-handle="section:portal:sidebar"] .bg-foreground > span.absolute {
-    background-color: #fc3c00 !important;
+  [data-portal-handle="section:portal:sidebar"] [data-menu-item-id].bg-foreground.text-background,
+  [data-portal-handle="section:portal:sidebar"] [data-menu-item-id].bg-background.border.shadow-sm {
+    background: #01011a !important;
+    background-image: none !important;
+    border-color: #01011a !important;
+    border-radius: 0 !important;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05) !important;
+    color: #ffffff !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    line-height: 1.25rem !important;
+  }
+
+  [data-portal-handle="section:portal:sidebar"] [data-menu-item-id].bg-foreground.text-background > span.absolute,
+  [data-portal-handle="section:portal:sidebar"] [data-menu-item-id].bg-background.border.shadow-sm > span.absolute {
+    background: #01011a !important;
   }
 
   [data-portal-handle="section:portal:sidebar"] p.text-\[10px\],
   [data-portal-handle="section:portal:sidebar"] .text-muted-foreground\/50,
   .lg\:hidden.fixed.inset-0.z-50 .text-muted-foreground\/50 {
-    color: rgb(235 242 255 / 0.8);
+    color: var(--portal-sidebar-muted-strong);
     letter-spacing: 0.14em;
   }
 
@@ -829,20 +875,26 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
 
   [data-portal-handle="section:portal:sidebar"] .text-muted-foreground,
   .lg\:hidden.fixed.inset-0.z-50 .text-muted-foreground {
-    color: rgb(228 236 255 / 0.88);
+    color: var(--portal-sidebar-muted);
   }
 
   .lg\:hidden.fixed.inset-0.z-50 aside {
-    background:
-      radial-gradient(circle at top left, rgb(71 136 255 / 0.26), transparent 10rem),
-      radial-gradient(circle at bottom right, rgb(252 60 0 / 0.16), transparent 8rem),
-      linear-gradient(180deg, #25498c 0%, #1d376b 52%, #16284f 100%);
-    color: #f8fbff;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    background: var(--portal-sidebar-bg-start);
+    color: var(--portal-sidebar-text);
   }
 
   .lg\:hidden.fixed.inset-0.z-50 aside .border-b,
   .lg\:hidden.fixed.inset-0.z-50 aside .border-t {
-    border-color: rgb(255 255 255 / 0.12);
+    border-color: var(--portal-sidebar-border);
   }
 
   button[aria-label="Close menu"] {
@@ -858,7 +910,7 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
 
   button[aria-label="Close menu"]::after {
     content: "\00d7";
-    color: #f8fbff;
+    color: var(--portal-sidebar-text);
     font-size: 1.25rem;
     line-height: 1;
     position: absolute;
@@ -900,7 +952,7 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
 
   .lg\:hidden.fixed.inset-0.z-50 aside > .shrink-0:first-child > button[aria-label]::after {
     content: "\00d7";
-    color: #f8fbff;
+    color: var(--portal-sidebar-text);
     font-size: 1.25rem;
     line-height: 1;
     position: absolute;
@@ -909,20 +961,28 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
   }
 
   .lg\:hidden.fixed.inset-0.z-50 [data-menu-item-id]:hover {
-    background: rgb(255 255 255 / 0.12);
-    border-color: transparent;
+    background: var(--portal-sidebar-hover);
     color: #ffffff;
   }
 
-  .lg\:hidden.fixed.inset-0.z-50 [data-menu-item-id].bg-foreground {
-    background: linear-gradient(90deg, rgb(0 103 255 / 0.35), rgb(0 103 255 / 0.18));
-    border-color: transparent;
-    box-shadow: none;
-    color: #ffffff;
+  .lg\:hidden.fixed.inset-0.z-50 [data-menu-item-id].bg-foreground.text-background,
+  .lg\:hidden.fixed.inset-0.z-50 [data-menu-item-id].bg-background.border.shadow-sm {
+    background: #01011a !important;
+    background-image: none !important;
+    border-color: #01011a !important;
+    border-radius: 0 !important;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05) !important;
+    color: #ffffff !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    line-height: 1.25rem !important;
   }
 
-  .lg\:hidden.fixed.inset-0.z-50 [data-menu-item-id].bg-foreground > span.absolute {
-    background-color: #fc3c00 !important;
+  .lg\:hidden.fixed.inset-0.z-50 [data-menu-item-id].bg-foreground.text-background > span.absolute,
+  .lg\:hidden.fixed.inset-0.z-50 [data-menu-item-id].bg-background.border.shadow-sm > span.absolute {
+    background: #01011a !important;
   }
 
   .lg\:hidden.fixed.inset-0.z-50 .shrink-0 > a {

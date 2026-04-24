@@ -1,17 +1,17 @@
 "use client"
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { useDeferredValue } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button } from '@open-mercato/ui/primitives/button'
-import { Input } from '@open-mercato/ui/primitives/input'
-import { Notice } from '@open-mercato/ui/primitives/Notice'
+import type { ColumnDef, SortingState } from '@tanstack/react-table'
+import { DataTable } from '@open-mercato/ui/backend/DataTable'
+import type { FilterDef, FilterValues } from '@open-mercato/ui/backend/FilterBar'
 import { EnumBadge } from '@open-mercato/ui/backend/ValueIcons'
-import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
-import { PortalEmptyState } from '@open-mercato/ui/portal/components/PortalEmptyState'
+import { Button } from '@open-mercato/ui/primitives/button'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
-import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_BADGE_MAP, WARRANTY_STATUS_SEGMENT_CLASSES } from '../../lib/statusStyles'
+import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_BADGE_MAP } from '../../lib/statusStyles'
 import type { PortalClaimRecord, PortalLookupBundle } from '../../lib/portal'
 
 type Props = {
@@ -25,14 +25,12 @@ type ClaimsResponse = {
   limit: number
 }
 
-type SortField = 'reportedAt' | 'resolvedAt' | 'statusKey' | 'priorityKey' | 'claimNumber'
-
 const DEFAULT_LIMIT = 20
 
 function formatDate(value: string | null | undefined) {
-  if (!value) return '-'
+  if (!value) return '—'
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '-'
+  if (Number.isNaN(date.getTime())) return '—'
   return new Intl.DateTimeFormat('pl-PL', {
     year: 'numeric',
     month: '2-digit',
@@ -40,61 +38,12 @@ function formatDate(value: string | null | undefined) {
   }).format(date)
 }
 
-function PriorityBadge({
-  label,
-  priorityKey,
-}: {
-  label: string
-  priorityKey: string
-}) {
-  return (
-    <span className={[
-      'inline-flex min-h-8 items-center rounded-none border px-2.5 py-1 text-xs font-medium',
-      WARRANTY_PRIORITY_SEGMENT_CLASSES[priorityKey] ?? 'border-border bg-muted text-foreground',
-    ].join(' ')}>
-      {label}
-    </span>
-  )
-}
-
-function SegmentButton({
-  active,
-  children,
-  className,
-  onClick,
-}: {
-  active: boolean
-  children: React.ReactNode
-  className?: string
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      className={[
-        'rounded-none border px-3 py-2 text-xs font-semibold transition-colors',
-        active ? (className ?? 'border-foreground bg-foreground text-background') : 'border-border bg-background text-muted-foreground hover:text-foreground',
-      ].join(' ')}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  )
-}
-
-function SortIndicator({ active, direction }: { active: boolean; direction?: 'asc' | 'desc' }) {
-  if (!active) return <span className="text-muted-foreground">-</span>
-  return <span className="text-primary">{direction === 'asc' ? 'ASC' : 'DESC'}</span>
-}
-
 export default function PortalClaimsTable({ orgSlug }: Props) {
+  const router = useRouter()
   const [page, setPage] = React.useState(1)
-  const [statusKey, setStatusKey] = React.useState<string>('')
-  const [priorityKey, setPriorityKey] = React.useState<string>('')
+  const [sorting, setSorting] = React.useState<SortingState>([{ id: 'reportedAt', desc: true }])
   const [searchInput, setSearchInput] = React.useState('')
-  const [sortBy, setSortBy] = React.useState<SortField>('reportedAt')
-  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('desc')
-
+  const [filters, setFilters] = React.useState<FilterValues>({})
   const search = useDeferredValue(searchInput.trim())
 
   const lookupsQuery = useQuery<PortalLookupBundle>({
@@ -106,46 +55,128 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
     },
   })
 
-  const claimsQuery = useQuery<ClaimsResponse>({
-    queryKey: ['portal-warranty-claims', orgSlug, page, statusKey, priorityKey, search, sortBy, sortDir],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(DEFAULT_LIMIT),
-        sortBy,
-        sortDir,
-      })
-      if (statusKey) params.set('statusKey', statusKey)
-      if (priorityKey) params.set('priorityKey', priorityKey)
-      if (search) params.set('search', search)
+  const queryParams = React.useMemo(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(DEFAULT_LIMIT),
+      sortBy: sorting[0]?.id || 'reportedAt',
+      sortDir: sorting[0]?.desc ? 'desc' : 'asc',
+    })
 
-      const response = await fetch(`/api/warranty_claims/portal/claims?${params.toString()}`, { credentials: 'include' })
+    if (search) params.set('search', search)
+
+    if (typeof filters.statusKey === 'string' && filters.statusKey.trim()) params.set('statusKey', filters.statusKey.trim())
+    if (typeof filters.priorityKey === 'string' && filters.priorityKey.trim()) params.set('priorityKey', filters.priorityKey.trim())
+    return params.toString()
+  }, [filters, page, search, sorting])
+
+  const claimsQuery = useQuery<ClaimsResponse>({
+    queryKey: ['portal-warranty-claims', orgSlug, queryParams],
+    queryFn: async () => {
+      const response = await fetch(`/api/warranty_claims/portal/claims?${queryParams}`, { credentials: 'include' })
       if (!response.ok) throw new Error('Nie udalo sie pobrac zgloszen.')
       return await response.json()
     },
   })
-
-  const priorityLabels = React.useMemo(() => {
-    return new Map((lookupsQuery.data?.priorities ?? []).map((item) => [item.id, item.label]))
-  }, [lookupsQuery.data?.priorities])
 
   const totalPages = React.useMemo(() => {
     const total = claimsQuery.data?.total ?? 0
     return Math.max(1, Math.ceil(total / DEFAULT_LIMIT))
   }, [claimsQuery.data?.total])
 
-  const toggleSort = React.useCallback((field: SortField) => {
-    setPage(1)
-    if (sortBy === field) {
-      setSortDir((current) => current === 'asc' ? 'desc' : 'asc')
-      return
-    }
-    setSortBy(field)
-    setSortDir(field === 'claimNumber' ? 'asc' : 'desc')
-  }, [sortBy])
+  const priorityLabels = React.useMemo(() => {
+    return new Map((lookupsQuery.data?.priorities ?? []).map((item) => [item.id, item.label]))
+  }, [lookupsQuery.data?.priorities])
 
-  const hasItems = (claimsQuery.data?.items?.length ?? 0) > 0
-  const isSortedBy = (field: SortField) => sortBy === field
+  const projectLabels = React.useMemo(() => {
+    return new Map((lookupsQuery.data?.projects ?? []).map((item) => [item.id, item.label]))
+  }, [lookupsQuery.data?.projects])
+
+  const statusMap = React.useMemo(() => {
+    return new Map((lookupsQuery.data?.statuses ?? []).map((item) => [item.id, item.label]))
+  }, [lookupsQuery.data?.statuses])
+
+  const priorityMap = React.useMemo(() => {
+    return new Map((lookupsQuery.data?.priorities ?? []).map((item) => [item.id, item.label]))
+  }, [lookupsQuery.data?.priorities])
+
+  const filtersDef = React.useMemo<FilterDef[]>(() => [
+    {
+      id: 'statusKey',
+      label: 'Status',
+      type: 'combobox',
+      options: (lookupsQuery.data?.statuses ?? []).map((item) => ({ value: item.id, label: item.label })),
+      formatValue: (value: string) => statusMap.get(value) ?? value,
+    },
+    {
+      id: 'priorityKey',
+      label: 'Priorytet',
+      type: 'combobox',
+      options: (lookupsQuery.data?.priorities ?? []).map((item) => ({ value: item.id, label: item.label })),
+      formatValue: (value: string) => priorityMap.get(value) ?? value,
+    },
+  ], [lookupsQuery.data?.priorities, lookupsQuery.data?.statuses, priorityMap, statusMap])
+
+  const columns = React.useMemo<ColumnDef<PortalClaimRecord>[]>(() => [
+    {
+      accessorKey: 'claimNumberFormatted',
+      header: 'Nr zgloszenia',
+      meta: { priority: 1, maxWidth: '120px' },
+      cell: ({ row }) => (
+        <Link href={`/${orgSlug}/portal/warranty-claims/${row.original.id}`} className="font-semibold text-primary hover:underline">
+          {row.original.claimNumberFormatted}
+        </Link>
+      ),
+    },
+    { accessorKey: 'title', header: 'Tytul', meta: { priority: 1, maxWidth: '420px' } },
+    {
+      accessorKey: 'statusKey',
+      header: 'Status',
+      meta: { priority: 1 },
+      cell: ({ row }) => (
+        <EnumBadge value={row.original.statusKey} map={WARRANTY_STATUS_BADGE_MAP} fallback={row.original.statusKey} />
+      ),
+    },
+    {
+      accessorKey: 'priorityKey',
+      header: 'Priorytet',
+      meta: { priority: 1 },
+      cell: ({ row }) => (
+        <span
+          title={priorityLabels.get(row.original.priorityKey) ?? row.original.priorityKey}
+          className={`inline-flex min-h-8 items-center rounded-none border px-2.5 py-1 text-xs font-medium ${
+            WARRANTY_PRIORITY_SEGMENT_CLASSES[row.original.priorityKey] ?? 'border-border bg-muted text-foreground'
+          }`}
+        >
+          {priorityLabels.get(row.original.priorityKey) ?? row.original.priorityKey}
+        </span>
+      ),
+    },
+    { accessorKey: 'reportedAt', header: 'Data zgloszenia', meta: { priority: 1 }, cell: ({ row }) => formatDate(row.original.reportedAt) },
+    { accessorKey: 'resolvedAt', header: 'Data rozwiazania', meta: { priority: 2 }, cell: ({ row }) => formatDate(row.original.resolvedAt) },
+    {
+      accessorKey: 'projectId',
+      header: 'Projekt',
+      enableSorting: false,
+      meta: { priority: 3, maxWidth: '320px' },
+      cell: ({ row }) => projectLabels.get(row.original.projectId) ?? row.original.projectId,
+    },
+  ], [orgSlug, priorityLabels, projectLabels])
+
+  const handleSortingChange = (next: SortingState) => {
+    setSorting(next)
+    setPage(1)
+  }
+
+  const handleFiltersApply = (nextValues: FilterValues) => {
+    setFilters(nextValues)
+    setPage(1)
+  }
+
+  const handleFiltersClear = () => {
+    setFilters({})
+    setPage(1)
+  }
 
   return (
     <div className="space-y-6">
@@ -160,182 +191,41 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
         )}
       />
 
-      <PortalCard className="rounded-none border-border/70 p-0">
-        <div className="border-b p-4 sm:p-5">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
-            <Input
-              value={searchInput}
-              onChange={(event) => {
-                setSearchInput(event.target.value)
-                setPage(1)
-              }}
-              placeholder="Szukaj po tytule, opisie lub numerze zgloszenia"
-              className="rounded-none"
-            />
-
-            <div className="flex flex-wrap gap-2">
-              <SegmentButton active={!statusKey} onClick={() => { setStatusKey(''); setPage(1) }}>Wszystkie statusy</SegmentButton>
-              {(lookupsQuery.data?.statuses ?? []).map((item) => (
-                <SegmentButton
-                  key={item.id}
-                  active={statusKey === item.id}
-                  className={WARRANTY_STATUS_SEGMENT_CLASSES[item.id]}
-                  onClick={() => {
-                    setStatusKey((current) => current === item.id ? '' : item.id)
-                    setPage(1)
-                  }}
-                >
-                  {item.label}
-                </SegmentButton>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <SegmentButton active={!priorityKey} onClick={() => { setPriorityKey(''); setPage(1) }}>Wszystkie priorytety</SegmentButton>
-              {(lookupsQuery.data?.priorities ?? []).map((item) => (
-                <SegmentButton
-                  key={item.id}
-                  active={priorityKey === item.id}
-                  className={WARRANTY_PRIORITY_SEGMENT_CLASSES[item.id]}
-                  onClick={() => {
-                    setPriorityKey((current) => current === item.id ? '' : item.id)
-                    setPage(1)
-                  }}
-                >
-                  {item.label}
-                </SegmentButton>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {claimsQuery.isError ? (
-          <div className="p-4 sm:p-5">
-            <Notice variant="error">
-              {claimsQuery.error instanceof Error ? claimsQuery.error.message : 'Nie udalo sie pobrac zgloszen.'}
-            </Notice>
-          </div>
-        ) : null}
-
-        {!claimsQuery.isError && !hasItems && !claimsQuery.isLoading ? (
-          <div className="p-4 sm:p-5">
-            <PortalEmptyState
-              title="Brak zgloszen"
-              description="Po utworzeniu pierwszego zgloszenia pojawi sie ono na tej liscie."
-              action={(
-                <Button asChild variant="outline" className="rounded-none">
-                  <Link href={`/${orgSlug}/portal/warranty-claims/create`}>Dodaj pierwsze zgloszenie</Link>
-                </Button>
-              )}
-            />
-          </div>
-        ) : null}
-
-        {hasItems ? (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse text-sm">
-                <thead className="bg-muted/40 text-left">
-                  <tr className="border-b">
-                    <th className="px-4 py-3 font-semibold sm:px-5">
-                      <button type="button" className="inline-flex items-center gap-1 hover:opacity-80" onClick={() => toggleSort('claimNumber')}>
-                        Nr zgloszenia
-                        <SortIndicator active={isSortedBy('claimNumber')} direction={sortDir} />
-                      </button>
-                    </th>
-                    <th className="px-4 py-3 font-semibold sm:px-5">Tytul</th>
-                    <th className="px-4 py-3 font-semibold sm:px-5">
-                      <button type="button" className="inline-flex items-center gap-1 hover:opacity-80" onClick={() => toggleSort('statusKey')}>
-                        Status
-                        <SortIndicator active={isSortedBy('statusKey')} direction={sortDir} />
-                      </button>
-                    </th>
-                    <th className="px-4 py-3 font-semibold sm:px-5">
-                      <button type="button" className="inline-flex items-center gap-1 hover:opacity-80" onClick={() => toggleSort('priorityKey')}>
-                        Priorytet
-                        <SortIndicator active={isSortedBy('priorityKey')} direction={sortDir} />
-                      </button>
-                    </th>
-                    <th className="px-4 py-3 font-semibold sm:px-5">
-                      <button type="button" className="inline-flex items-center gap-1 hover:opacity-80" onClick={() => toggleSort('reportedAt')}>
-                        Data zgloszenia
-                        <SortIndicator active={isSortedBy('reportedAt')} direction={sortDir} />
-                      </button>
-                    </th>
-                    <th className="px-4 py-3 font-semibold sm:px-5">
-                      <button type="button" className="inline-flex items-center gap-1 hover:opacity-80" onClick={() => toggleSort('resolvedAt')}>
-                        Data rozwiazania
-                        <SortIndicator active={isSortedBy('resolvedAt')} direction={sortDir} />
-                      </button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(claimsQuery.data?.items ?? []).map((item) => (
-                    <tr key={item.id} className="border-b last:border-b-0 hover:bg-muted/20">
-                      <td className="px-4 py-3 align-top sm:px-5">
-                        <Link href={`/${orgSlug}/portal/warranty-claims/${item.id}`} className="font-semibold text-primary hover:underline">
-                          {item.claimNumberFormatted}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 align-top sm:px-5">{item.title}</td>
-                      <td className="px-4 py-3 align-top sm:px-5">
-                        <EnumBadge value={item.statusKey} map={WARRANTY_STATUS_BADGE_MAP} fallback={item.statusKey} />
-                      </td>
-                      <td className="px-4 py-3 align-top sm:px-5">
-                        <PriorityBadge label={priorityLabels.get(item.priorityKey) ?? item.priorityKey} priorityKey={item.priorityKey} />
-                      </td>
-                      <td className="px-4 py-3 align-top sm:px-5">{formatDate(item.reportedAt)}</td>
-                      <td className="px-4 py-3 align-top sm:px-5">{formatDate(item.resolvedAt)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex flex-col gap-3 border-t px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <p className="text-muted-foreground">
-                {claimsQuery.isLoading ? 'Aktualizacja listy...' : `Liczba wynikow: ${claimsQuery.data?.total ?? 0}`}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-none"
-                  disabled={page <= 1 || claimsQuery.isLoading}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                >
-                  Poprzednia
-                </Button>
-                <span className="min-w-24 text-center text-muted-foreground">
-                  Strona {page} / {totalPages}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-none"
-                  disabled={page >= totalPages || claimsQuery.isLoading}
-                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                >
-                  Nastepna
-                </Button>
-              </div>
-            </div>
-          </>
-        ) : null}
-      </PortalCard>
-
-      {lookupsQuery.isError ? (
-        <Notice variant="error">
-          {lookupsQuery.error instanceof Error ? lookupsQuery.error.message : 'Nie udalo sie zaladowac slownikow.'}
-        </Notice>
-      ) : null}
-
-      {claimsQuery.isLoading && !hasItems ? (
-        <PortalCard className="rounded-none border-dashed text-sm text-muted-foreground">
-          Ladowanie zgloszen...
-        </PortalCard>
-      ) : null}
+      <DataTable
+        title="Zgloszenia"
+        actions={(
+          <Button asChild className="rounded-none">
+            <Link href={`/${orgSlug}/portal/warranty-claims/create`}>Nowe zgloszenie</Link>
+          </Button>
+        )}
+        columns={columns}
+        data={claimsQuery.data?.items ?? []}
+        searchValue={searchInput}
+        onSearchChange={(value) => {
+          setSearchInput(value)
+          setPage(1)
+        }}
+        searchAlign="right"
+        filters={filtersDef}
+        filterValues={filters}
+        onFiltersApply={handleFiltersApply}
+        onFiltersClear={handleFiltersClear}
+        entityId="portal:warranty-claim"
+        sortable
+        sorting={sorting}
+        onSortingChange={handleSortingChange}
+        pagination={{
+          page,
+          pageSize: DEFAULT_LIMIT,
+          total: claimsQuery.data?.total ?? 0,
+          totalPages: claimsQuery.data?.total ? totalPages : 0,
+          onPageChange: setPage,
+        }}
+        isLoading={claimsQuery.isLoading || lookupsQuery.isLoading}
+        onRowClick={(row) => {
+          router.push(`/${orgSlug}/portal/warranty-claims/${row.id}`)
+        }}
+      />
     </div>
   )
 }

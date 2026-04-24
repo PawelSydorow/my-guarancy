@@ -3,11 +3,11 @@
 Lokalny backlog problemow wykrytych w integracji z `@open-mercato/*`.
 
 Cel:
-- miec jedno miejsce na bugi do zgloszenia upstream,
-- zapisac reprodukcje i oczekiwane zachowanie,
+- miec jedno miejsce na wpisy do zgloszenia upstream,
+- zapisac kroki odtworzenia, aktualne zachowanie i oczekiwany rezultat,
 - odroznic bug core od lokalnego workaroundu w module aplikacji.
 
-## Bug 001: `CrudForm` autofocus powoduje widoczny flicker pierwszego `combobox`
+## Bug 001: `CrudForm` wymusza autofocus pierwszego pola i powoduje flicker na `combobox`
 
 Status:
 - otwarte
@@ -17,14 +17,14 @@ Status:
 Obszar:
 - `@open-mercato/ui`
 - `CrudForm`
-- auto focus pierwszego pola formularza
+- initial focus
 
 Jak odtworzyc:
-1. Otworz ekran tworzenia nowego rekordu oparty o `CrudForm`.
-2. Ustaw jako pierwsze pole formularza `type: 'custom'` z inputem typu `combobox`, albo pole, ktore renderuje input tekstowy z wlasnym stanem dropdownu.
+1. Otworz ekran tworzenia rekordu oparty o `CrudForm`.
+2. Ustaw jako pierwsze pole formularza `type: 'custom'` z kontrolka typu `combobox`.
 3. Wejdz na strone create bez wczesniejszej interakcji z formularzem.
-4. Zobaczysz, ze pierwsze pole dostaje focus automatycznie.
-5. Dla `combobox` wyglada to jak krotkie mrugniecie lub wejscie focusa w input zaraz po zaladowaniu ekranu.
+4. Pierwsze pole dostanie focus automatycznie.
+5. Dla `combobox` widac krotkie mrugniecie lub niepozadany focus przy ladowaniu ekranu.
 
 Aktualny przyklad w aplikacji:
 - modul `warranty_claims`
@@ -32,15 +32,15 @@ Aktualny przyklad w aplikacji:
 - przypadek: pierwsze pole `Projekt`
 
 Aktualne zachowanie:
-- `CrudForm` po zaladowaniu ustawia focus na pierwszym polu formularza,
-- przy polach typu `combobox` daje to niepozadany efekt wizualny,
-- uzytkownik widzi flicker nawet wtedy, gdy ekran nie powinien wymuszac focusa.
+- `CrudForm` po zaladowaniu ustawia focus na pierwszym widocznym polu,
+- przy polach interaktywnych, zwlaszcza `combobox`, daje to efekt wizualnego flickera,
+- host nie ma prostego sposobu, zeby wylaczyc to zachowanie.
 
 Oczekiwane zachowanie:
 - autofocus pierwszego pola powinien byc opcjonalny,
 - host formularza powinien moc wylaczyc initial focus,
-- `CrudForm` nie powinien wymuszac focusa na polach interaktywnych, jesli ekran nie potrzebuje takiego zachowania,
-- szczegolnie dla `combobox` i podobnych kontrolek nie powinno byc widocznego flickera przy wejsciu na ekran.
+- `CrudForm` nie powinien wymuszac focusa na polach, ktore maja wlasna logike otwierania,
+- kontrolki typu `combobox` nie powinny migac przy wejsciu na ekran.
 
 Co dzis zrobiono lokalnie:
 - w `warranty_claims` zastosowano lokalny workaround bez modyfikowania core,
@@ -48,11 +48,11 @@ Co dzis zrobiono lokalnie:
 - rozwiazanie jest celowo lokalne, zeby update `open-mercato` nie nadpisywal zmian.
 
 Rekomendacja do upstream:
-- dodac do `CrudForm` opcje w stylu `disableInitialFocus`,
-- albo ograniczyc autofocus do prostych pol (`text`, `textarea`, `select`) i nie wymuszac go dla `custom` / `combobox`,
+- dodac do `CrudForm` opcje typu `disableInitialFocus`,
+- albo ograniczyc autofocus do prostych pol (`text`, `textarea`, `select`),
 - albo przeniesc decyzje o autofocusie do hosta formularza.
 
-## Bug 002: niespojny kontrakt payloadu listy/rekordu miedzy warstwami CRUD i frontendem
+## Bug 002: kontrakt payloadu CRUD jest niespojny miedzy warstwami `snake_case` i `camelCase`
 
 Status:
 - otwarte
@@ -70,7 +70,7 @@ Jak odtworzyc:
 2. Oprzyj frontend formularza i tabeli o te pola, np. `project_id`, `status_key`, `bas_number`.
 3. Otworz liste lub edycje rekordu przez standardowe helpery frontendowe (`fetchCrudList`, `CrudForm`, `DataTable`).
 4. W czesci sciezek lub warstw posrednich payload moze pojawic sie w `camelCase`, np. `projectId`, `statusKey`, `basNumber`.
-5. Jesli frontend oczekuje wylacznie `snake_case`, pola na liscie i w edycji wygladaja na puste mimo poprawnych danych w bazie i poprawnej odpowiedzi API.
+5. Jesli frontend oczekuje wylacznie `snake_case`, pola na liscie i w formularzu moga wygladac na puste mimo poprawnych danych w bazie.
 
 Aktualny przyklad w aplikacji:
 - modul `warranty_claims`
@@ -80,8 +80,8 @@ Aktualny przyklad w aplikacji:
 
 Aktualne zachowanie:
 - zapis do bazy dziala poprawnie,
-- API potrafi zwrocic pelne dane rekordu,
-- ale frontend moze dostac shape z innym nazewnictwem niz zaklada kod komponentu,
+- API zwraca pelne dane rekordu,
+- frontend moze dostac shape z innym nazewnictwem niz zaklada komponent,
 - skutkiem sa puste wartosci na liscie i w formularzu edycji.
 
 Oczekiwane zachowanie:
@@ -97,9 +97,9 @@ Co dzis zrobiono lokalnie:
 Rekomendacja do upstream:
 - zdefiniowac jeden obowiazujacy format payloadu dla CRUD response,
 - upewnic sie, ze wszystkie sciezki `makeCrudRoute`, serializacja i helpery frontendowe zwracaja ten sam shape,
-- jesli framework dopuszcza oba formaty, powinien robic to jawnie i konsekwentnie, a nie zaleznie od sciezki wykonania.
+- jesli framework dopuszcza oba formaty, powinien robic to jawnie i konsekwentnie.
 
-## Bug 003: `DataTable` nie wspiera recznego resize kolumn ani persystencji ich szerokosci
+## Bug 003: `DataTable` nie wspiera recznego resize kolumn ani persystencji szerokosci
 
 Status:
 - otwarte
@@ -121,7 +121,7 @@ Jak odtworzyc:
 Aktualne zachowanie:
 - `DataTable` wspiera persystencje kolejnosci kolumn, widocznosci, sortowania i filtrow,
 - nie ma widocznego wsparcia dla recznego resize kolumn przez uzytkownika,
-- nie ma tez persystencji szerokosci kolumn w perspectives/snapshot,
+- nie ma tez persystencji szerokosci kolumn w perspectives lub snapshot,
 - dla dlugich pol host musi ratowac sie lokalnie przez `meta.maxWidth` i truncation config.
 
 Aktualny przyklad w aplikacji:
@@ -136,14 +136,14 @@ Oczekiwane zachowanie:
 
 Co dzis zrobiono lokalnie:
 - w `warranty_claims` zwiekszono szerokosc obciecia kolumny `Projekt` przez `meta.maxWidth`,
-- to poprawia czytelnosc jednej kolumny, ale nie rozwiazuje ogolnie resize i persystencji.
+- poprawia to czytelnosc jednej kolumny, ale nie rozwiazuje ogolnie resize i persystencji.
 
 Rekomendacja do upstream:
 - dodac wsparcie dla `columnSizing` / `onColumnSizingChange`,
 - dodac UI do resize kolumn,
 - zapisywac szerokosci kolumn w perspective settings lub snapshot storage.
 
-## Bug 004: ekran create/edit user nie wystawia pola `name`, mimo ze encja `User` je posiada
+## Bug 004: formularz create/edit user nie wystawia pola `name`, mimo ze encja `User` je posiada
 
 Status:
 - otwarte
@@ -172,7 +172,7 @@ Aktualne zachowanie:
 - core ma ekran listy, create i edit dla uzytkownikow,
 - encja `User` ma pole `name`,
 - formularz create/edit nie pozwala ustawic ani edytowac `name`,
-- w efekcie na UI admin nie da sie ustawic pelnej nazwy uzytkownika,
+- admin nie moze ustawic pelnej nazwy uzytkownika,
 - moduly korzystajace z lookupow userow wpadaja wtedy na `email` jako fallback.
 
 Oczekiwane zachowanie:
@@ -187,7 +187,7 @@ Co dzis zrobiono lokalnie:
 
 Rekomendacja do upstream:
 - dodac pole `name` do formularza create/edit user,
-- upewnic sie, ze API listy/detalu usera zwraca je konsekwentnie,
+- upewnic sie, ze API listy i detalu usera zwraca je konsekwentnie,
 - rozwazyc pokazanie `name` takze na liscie uzytkownikow i w standardowych lookupach auth.
 
 ## Bug 005: `ComboboxInput` mruga przy otwieraniu listy sugestii w formularzach z dynamicznym lookupiem
@@ -216,7 +216,7 @@ Aktualny przyklad w aplikacji:
 Aktualne zachowanie:
 - `ComboboxInput` opiera sie na wlasnym stanie `focus` / `blur` i debounce dla `loadSuggestions`,
 - przy niektorych hostach formularza daje to efekt migniecia listy,
-- w praktyce uzytkownik widzi stabilny dropdown dopiero po chwili albo po drugim podejsciu.
+- uzytkownik widzi stabilny dropdown dopiero po chwili albo po drugim podejsciu.
 
 Oczekiwane zachowanie:
 - dropdown powinien otwierac sie stabilnie za pierwszym razem,
@@ -230,6 +230,82 @@ Co dzis zrobiono lokalnie:
 - inne pola pozostaly bez zmian.
 
 Rekomendacja do upstream:
-- poprawic model otwierania/zamykania w `ComboboxInput`,
+- poprawic model otwierania i zamykania w `ComboboxInput`,
 - nie zamykac listy tylko dlatego, ze input traci focus podczas wyboru z listy,
 - pokazac loading stan natychmiast po aktywacji pola, jesli `loadSuggestions` jest asynchroniczne.
+
+## Feature 001: portal klienta jako osobny obszar potrzebuje odpowiednika backendowego `DataTable`
+
+Status:
+- do zgloszenia upstream
+- brak lokalnej implementacji w core
+
+Obszar:
+- `@open-mercato/core`
+- `@open-mercato/ui`
+- portal klienta
+- tabele list
+- filtrowanie, sortowanie, paginacja, akcje wierszy
+
+Opis:
+- portal klienta jest osobnym obszarem od backoffice i ma inny model uprawnien oraz UX,
+- obecnie backendowy `DataTable` daje gotowe kontrolki dla backoffice,
+- w portalu brakuje analogicznych, gotowych komponentow albo neutralnego wariantu tabeli,
+- przez to kazdy modul portalowy musi budowac liste recznie albo kopiowac logike z backendu.
+
+Aktualny przyklad w aplikacji:
+- modul `warranty_claims`
+- portal: [PortalClaimsTable.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules/warranty_claims/components/portal/PortalClaimsTable.tsx)
+- backoffice: [WarrantyClaimsTable.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules/warranty_claims/components/WarrantyClaimsTable.tsx)
+
+Aktualne zachowanie:
+- backend ma gotowy `DataTable` z filtrami, sortowaniem, perspektywami, eksportem i akcjami,
+- portal korzysta z recznie zlozonej tabeli HTML + lokalnych filtrow,
+- brak wspolnego, portalowego odpowiednika dla gotowych kontrolek listy,
+- brak osobnego, wspieranego przez core UI obszaru dla customer portal lists.
+
+Oczekiwane zachowanie:
+- portal klienta powinien miec osobny, wspierany zestaw kontrolek do tabel list,
+- powinny byc dostepne co najmniej: filtrowanie, sortowanie, paginacja, stany pusty/ladowanie, podstawowe akcje wiersza,
+- komponenty powinny byc dopasowane do portalu, a nie przenosic wprost backendowego chrome,
+- najlepiej jako osobny `portal DataTable` albo neutralny `TableList` z wariantami backend/portal.
+
+Rekomendacja do upstream:
+- wydzielic wspolny, neutralny komponent listy, ktory mozna stylowac dla backoffice i portalu,
+- albo dodac portalowy odpowiednik `DataTable` bez backendowych zaleznosci typu perspectives, exports i injection handles,
+- udokumentowac portal jako osobny obszar UI, a nie tylko lzejszy backoffice.
+
+## Bug 006: brak gotowych kontrolek listy w portalu zmusza do recznej implementacji filtrowania i tabel
+
+Status:
+- do zgloszenia upstream
+- obecnie obejscie lokalne w module `warranty_claims`
+
+Obszar:
+- `@open-mercato/ui`
+- `@open-mercato/core`
+- portal klienta
+- filtrowanie list
+- tabela wynikow
+
+Jak odtworzyc:
+1. Otworz dowolny ekran listy w portalu klienta.
+2. Porownaj go z odpowiednikiem w backoffice opartym o `DataTable`.
+3. Sprawdz, czy portal ma gotowe komponenty dla filtrow, sortowania i akcji wiersza.
+4. Zauwazysz, ze portalowy ekran trzeba skladac recznie z prymitywow HTML albo osobnych komponentow.
+
+Aktualne zachowanie:
+- backoffice ma gotowy zestaw kontrolek listy w `DataTable`,
+- portal nie ma rownowaznego, gotowego zestawu komponentow,
+- modul musi reimplementowac paging, filtry, sortowanie i stany pusty/ladowanie,
+- to prowadzi do duplikacji logiki i rozjazdu UX miedzy portalem a backoffice.
+
+Oczekiwane zachowanie:
+- portal powinien miec gotowy, wspierany zestaw kontrolek listy,
+- komponenty powinny byc dostepne jako portal-first albo neutralne, ale bez zaleznosci od backendowego chrome,
+- filtry i tabela powinny byc budowane z tego samego standardu co reszta UI, zamiast byc pisane od zera.
+
+Rekomendacja do upstream:
+- dodac portalowy odpowiednik listy z podstawowym zestawem kontroli,
+- wyciagnac wspolne mechanizmy filtrowania i paginacji do warstwy wspolnej,
+- traktowac portal jako osobny target UI, a nie jako wariant backoffice.
