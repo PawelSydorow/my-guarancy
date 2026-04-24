@@ -3,6 +3,7 @@ import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { Dictionary, DictionaryEntry } from '@open-mercato/core/modules/dictionaries/data/entities'
 import { User } from '@open-mercato/core/modules/auth/data/entities'
 import { WARRANTY_DICTIONARY_KEYS, WARRANTY_STATUS_KEYS } from './constants'
+import { formatWarrantyClaimNumber } from './format'
 import type { WarrantyClaimCreateInput, WarrantyClaimUpdateInput } from '../data/validators'
 import { Project, ProjectSubcontractor, WarrantyClaim } from '../data/entities'
 
@@ -12,6 +13,10 @@ type Scope = {
 }
 
 type ClaimMutationInput = WarrantyClaimCreateInput | WarrantyClaimUpdateInput
+
+export function formatClaimNumber(value: number | null | undefined): string {
+  return formatWarrantyClaimNumber(value)
+}
 
 export type PreparedClaimInput<T extends ClaimMutationInput = ClaimMutationInput> = T & {
   claim_number?: number
@@ -38,11 +43,6 @@ function parseClaimNumberValue(value: unknown): number {
     if (Number.isInteger(parsed) && parsed > 0) return parsed
   }
   return 0
-}
-
-export function formatClaimNumber(value: number | null | undefined): string {
-  if (!Number.isInteger(value) || value === null || value === undefined || value <= 0) return ''
-  return String(value).padStart(3, '0')
 }
 
 async function resolveNextClaimNumber(
@@ -335,7 +335,7 @@ export function serializeClaimRecord(entity: WarrantyClaim) {
     is_active: entity.isActive,
     project_id: entity.projectId,
     claim_number: entity.claimNumber,
-    claim_number_formatted: formatClaimNumber(entity.claimNumber),
+    claim_number_formatted: formatWarrantyClaimNumber(entity.claimNumber),
     title: entity.title,
     issue_description: entity.issueDescription,
     location_text: entity.locationText,

@@ -294,8 +294,9 @@ export default function WarrantyClaimForm({ mode, claimId }: { mode: 'create' | 
         <input
           type="text"
           readOnly
+          aria-readonly="true"
           value={typeof value === 'string' && value.trim() ? value : 'Nadany automatycznie po zapisie'}
-          className="w-full rounded-none border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+          className="w-full rounded-none border border-input bg-muted px-3 py-2 text-sm font-medium text-foreground"
         />
       ),
     },

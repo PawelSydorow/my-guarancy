@@ -1,3 +1,5 @@
+import { formatWarrantyClaimNumber } from './lib/format'
+
 export type WarrantyClaimRecord = {
   id: string
   organization_id: string
@@ -59,14 +61,15 @@ export type WarrantyClaimApiRecord = Partial<WarrantyClaimRecord> & {
 }
 
 export function normalizeWarrantyClaimRecord(input: WarrantyClaimApiRecord): WarrantyClaimRecord {
+  const claimNumber = input.claim_number ?? input.claimNumber ?? 0
   return {
     id: input.id,
     organization_id: input.organization_id ?? input.organizationId ?? '',
     tenant_id: input.tenant_id ?? input.tenantId ?? '',
     is_active: input.is_active ?? input.isActive ?? true,
     project_id: input.project_id ?? input.projectId ?? '',
-    claim_number: input.claim_number ?? input.claimNumber ?? 0,
-    claim_number_formatted: input.claim_number_formatted ?? input.claimNumberFormatted ?? '',
+    claim_number: claimNumber,
+    claim_number_formatted: input.claim_number_formatted ?? input.claimNumberFormatted ?? formatWarrantyClaimNumber(claimNumber),
     title: input.title,
     issue_description: input.issue_description ?? input.issueDescription ?? '',
     location_text: input.location_text ?? input.locationText ?? '',

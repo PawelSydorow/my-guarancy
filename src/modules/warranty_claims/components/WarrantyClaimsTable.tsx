@@ -200,8 +200,8 @@ export default function WarrantyClaimsTable() {
     {
       accessorKey: 'claim_number',
       header: 'Numer zgloszenia',
-      meta: { priority: 1 },
-      cell: ({ row }) => row.original.claim_number_formatted || row.original.claim_number,
+      meta: { priority: 1, maxWidth: '96px' },
+      cell: ({ row }) => row.original.claim_number_formatted,
     },
     {
       accessorKey: 'project_id',
