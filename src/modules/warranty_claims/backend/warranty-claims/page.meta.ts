@@ -4,5 +4,6 @@ export const metadata = {
   pageTitle: 'Zgloszenia gwarancyjne',
   pageGroup: 'Serwis',
   pageOrder: 120,
+  icon: 'clipboard-list',
   breadcrumb: [{ label: 'Zgloszenia gwarancyjne' }],
 }
