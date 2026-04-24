@@ -3,12 +3,13 @@ import * as React from 'react'
 import { Page, PageBody } from '@open-mercato/ui/backend/Page'
 import { CrudForm, type CrudField, type CrudFormGroup, type CrudFieldOption } from '@open-mercato/ui/backend/CrudForm'
 import { AttachmentsSection } from '@open-mercato/ui/backend/detail'
-import { ComboboxInput, DateTimePicker } from '@open-mercato/ui/backend/inputs'
+import { DateTimePicker } from '@open-mercato/ui/backend/inputs'
 import { createCrud, fetchCrudList, updateCrud, deleteCrud } from '@open-mercato/ui/backend/utils/crud'
 import { pushWithFlash } from '@open-mercato/ui/backend/utils/flash'
 import { useRouter } from 'next/navigation'
 import type { z } from 'zod'
 import type { LookupBundle, LookupOption, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
+import { ClearableComboboxInput } from './ClearableComboboxInput'
 import { normalizeWarrantyClaimRecord } from '../types'
 import {
   WARRANTY_CLAIM_ENTITY_ID,
@@ -432,7 +433,7 @@ export default function WarrantyClaimForm({
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-4">
                   <FieldFrame label="Projekt" required error={errors.project_id}>
-                    <ComboboxInput
+                    <ClearableComboboxInput
                       value={projectId}
                       suggestions={toComboboxOptions(projectOptions)}
                       placeholder="Wybierz projekt"
@@ -482,7 +483,7 @@ export default function WarrantyClaimForm({
             <FormCard title="Odpowiedzialność i realizacja" className="h-full">
               <div className="space-y-4">
                 <FieldFrame label="Przypisana osoba" required error={errors.assigned_user_id}>
-                  <ComboboxInput
+                  <ClearableComboboxInput
                     value={assignedUserId}
                     suggestions={toComboboxOptions(userOptions)}
                     placeholder="Wybierz osobę"
@@ -534,7 +535,7 @@ export default function WarrantyClaimForm({
             <FormCard title="Dane podwykonawcy" className="h-full">
               <div className="space-y-4">
                 <FieldFrame label="Podwykonawca" error={errors.subcontractor_id}>
-                  <ComboboxInput
+                  <ClearableComboboxInput
                     value={subcontractorId}
                     suggestions={toComboboxOptions(subcontractors)}
                     disabled={!projectId || subcontractorsLoading}
