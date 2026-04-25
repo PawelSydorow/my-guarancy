@@ -249,7 +249,7 @@ export default function WarrantyClaimsTable() {
         title="Zgloszenia gwarancyjne"
         actions={(
           <Button asChild>
-            <Link href="/backend/warranty-claims/create">Nowe zgloszenie</Link>
+            <Link href="/backend/warranty-claims-new">Nowe zgloszenie</Link>
           </Button>
         )}
         columns={columns}

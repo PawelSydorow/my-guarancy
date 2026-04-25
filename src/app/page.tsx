@@ -195,7 +195,7 @@ export default async function Home() {
               <div className="mt-5 flex flex-col gap-2 text-sm">
                 <Link className="border border-border px-4 py-3 transition-colors hover:border-primary hover:text-primary" href="/login">{t('app.page.quickLinks.login', 'Login')}</Link>
                 <Link className="border border-border px-4 py-3 transition-colors hover:border-primary hover:text-primary" href="/backend/warranty-claims">Warranty claims board</Link>
-                <Link className="border border-border px-4 py-3 transition-colors hover:border-primary hover:text-primary" href="/backend/warranty-claims/create">Create new claim</Link>
+                <Link className="border border-border px-4 py-3 transition-colors hover:border-primary hover:text-primary" href="/backend/warranty-claims-new">Create new claim</Link>
                 <Link className="border border-border px-4 py-3 transition-colors hover:border-primary hover:text-primary" href="/example">{t('app.page.quickLinks.examplePage', 'Example Page')}</Link>
               </div>
             </section>
