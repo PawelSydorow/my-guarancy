@@ -63,6 +63,39 @@ function resolveIcon(icon?: string): ComponentType<{ className?: string }> | nul
   return ICONS[iconName] ?? null
 }
 
+function normalizePathname(pathname: string): string {
+  if (!pathname) return '/'
+  const trimmed = pathname.replace(/\/+$/, '')
+  return trimmed.length > 0 ? trimmed : '/'
+}
+
+function getMenuItemMatchScore(pathname: string, href?: string): number {
+  if (!href) return -1
+
+  const normalizedPathname = normalizePathname(pathname)
+  const normalizedHref = normalizePathname(href)
+
+  if (normalizedPathname === normalizedHref) return normalizedHref.length
+  if (normalizedPathname.startsWith(`${normalizedHref}/`)) return normalizedHref.length
+
+  return -1
+}
+
+function resolveActiveMenuHref(items: Array<{ href?: string }>, pathname: string): string | null {
+  let bestHref: string | null = null
+  let bestScore = -1
+
+  for (const item of items) {
+    const score = getMenuItemMatchScore(pathname, item.href)
+    if (score > bestScore) {
+      bestScore = score
+      bestHref = item.href ?? null
+    }
+  }
+
+  return bestHref
+}
+
 function MenuIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -401,7 +434,6 @@ function PortalShellFrame({
   const closeMobile = useCallback(() => setMobileOpen(false), [])
 
   const { items: injectedMainItems } = usePortalInjectedMenuItems('menu:portal:sidebar:main')
-  const { items: injectedAccountItems } = usePortalInjectedMenuItems('menu:portal:sidebar:account')
 
   const [autoNavGroups, setAutoNavGroups] = useState<PortalNavGroupData[]>([])
 
@@ -441,68 +473,38 @@ function PortalShellFrame({
     return mergeMenuItems(builtIn, injectedMainItems)
   }, [resolvedAuthenticated, autoNavGroups, injectedMainItems])
 
-  const mergedAccountItems = useMemo(() => {
-    if (!resolvedAuthenticated) return []
-    const discovered = autoNavGroups.find((group) => group.id === 'account')?.items ?? []
-    const builtIn = discovered.map((item) => ({
-      id: item.id,
-      labelKey: item.labelKey,
-      label: item.label,
-      href: item.href,
-      icon: item.icon,
-    }))
-    return mergeMenuItems(builtIn, injectedAccountItems)
-  }, [resolvedAuthenticated, autoNavGroups, injectedAccountItems])
+  const activeMenuHref = useMemo(
+    () => resolveActiveMenuHref(mergedNavItems, pathname),
+    [mergedNavItems, pathname],
+  )
 
   const sidebar = (
     <div className="flex h-full flex-col px-4 py-4" data-customer-portal-sidebar>
-      <div className="flex h-16 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 shadow-sm">
-        <Link href={portalHome} className="flex items-center gap-2.5 text-slate-900 transition hover:opacity-90" aria-label={headerTitle}>
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20">
-            <Image src="/open-mercato.svg" alt="" width={20} height={20} />
-          </span>
-          <span className="min-w-0 truncate text-[14px] font-semibold tracking-tight text-slate-900">
-            {headerTitle}
-          </span>
+      <div className="flex h-16 items-center justify-center px-2">
+        <Link href={portalHome} className="text-slate-900 transition hover:opacity-90" aria-label={headerTitle}>
+          <div className="flex items-center justify-center">
+            <span className="text-[var(--login-primary)] text-3xl font-black uppercase tracking-[-0.06em]">BREMER</span>
+            <div className="mx-3 h-6 w-px bg-border/30" aria-hidden="true" />
+            <span className="text-xs font-medium uppercase tracking-[0.32em] text-muted-foreground">POLSKA</span>
+          </div>
         </Link>
       </div>
 
+      <div className="mx-2 h-px shrink-0 bg-slate-200/80" aria-hidden="true" />
+
       <nav aria-label="Portal navigation" className="flex-1 overflow-y-auto py-5">
-        <div className="mb-6">
-          <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-            {t('portal.nav.home', 'Portal')}
-          </p>
-          <div className="space-y-1">
-            {mergedNavItems.map((item) => (
-              <SidebarNavItem
-                key={item.id}
-                item={item}
-                active={!!item.href && pathname.startsWith(item.href)}
-                t={t}
-                onClick={closeMobile}
-              />
-            ))}
-          </div>
+        <div className="space-y-1">
+          {mergedNavItems.map((item) => (
+            <SidebarNavItem
+              key={item.id}
+              item={item}
+              active={item.href != null && item.href === activeMenuHref}
+              t={t}
+              onClick={closeMobile}
+            />
+          ))}
         </div>
 
-        {mergedAccountItems.length > 0 ? (
-          <div className="mb-6">
-          <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-              {t('portal.nav.account', 'Account')}
-            </p>
-            <div className="space-y-1">
-              {mergedAccountItems.map((item) => (
-                <SidebarNavItem
-                  key={item.id}
-                  item={item}
-                  active={!!item.href && pathname.startsWith(item.href)}
-                  t={t}
-                  onClick={closeMobile}
-                />
-              ))}
-            </div>
-          </div>
-        ) : null}
       </nav>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">

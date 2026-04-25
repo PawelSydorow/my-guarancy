@@ -5,7 +5,6 @@ import { getAuthFromCookies } from '@open-mercato/shared/lib/auth/server'
 import { AppShell } from '@open-mercato/ui/backend/AppShell'
 import { resolveTranslations } from '@open-mercato/shared/lib/i18n/server'
 import { I18nProvider } from '@open-mercato/shared/lib/i18n/context'
-import { profilePathPrefixes } from '@open-mercato/core/modules/auth/lib/profile-sections'
 import { APP_VERSION } from '@open-mercato/shared/lib/version'
 import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 import { PageInjectionBoundary } from '@open-mercato/ui/backend/injection/PageInjectionBoundary'
@@ -122,7 +121,7 @@ export default async function BackendLayout({
         settingsSectionTitle={translate('backend.nav.settings', 'Settings')}
         profileSections={[]}
         profileSectionTitle={translate('profile.page.title', 'Profile')}
-        profilePathPrefixes={profilePathPrefixes}
+        profilePathPrefixes={[]}
       >
         <PageInjectionBoundary path={path} context={injectionContext}>
           {children}
