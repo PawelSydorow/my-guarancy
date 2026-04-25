@@ -7,7 +7,7 @@ import { DateTimePicker } from '@open-mercato/ui/backend/inputs'
 import { createCrud, fetchCrudList, updateCrud, deleteCrud } from '@open-mercato/ui/backend/utils/crud'
 import { pushWithFlash } from '@open-mercato/ui/backend/utils/flash'
 import { useRouter } from 'next/navigation'
-import type { z } from 'zod'
+import { z } from 'zod'
 import type { LookupBundle, LookupOption, WarrantyClaimApiRecord, WarrantyClaimRecord } from '../types'
 import { ClearableComboboxInput } from './ClearableComboboxInput'
 import { normalizeWarrantyClaimRecord } from '../types'
@@ -36,6 +36,14 @@ type FormValues = {
   resolved_at?: string | null
   subcontractor_id?: string | null
 }
+
+const warrantyClaimCreateFormSchema = warrantyClaimCreateSchema.extend({
+  claim_number: z.string().optional(),
+})
+
+const warrantyClaimUpdateFormSchema = warrantyClaimUpdateSchema.extend({
+  claim_number: z.string().optional(),
+})
 
 function toFieldOptions(items: LookupOption[]): CrudFieldOption[] {
   return items.map((item) => ({ value: item.id, label: item.label }))
@@ -570,7 +578,7 @@ export default function WarrantyClaimForm({
   ], [claimRecord, loadSubcontractors, lookups, mode, subcontractors, subcontractorsLoading])
 
   const formSchema = React.useMemo(
-    () => (mode === 'create' ? warrantyClaimCreateSchema : warrantyClaimUpdateSchema) as unknown as z.ZodType<FormValues>,
+    () => (mode === 'create' ? warrantyClaimCreateFormSchema : warrantyClaimUpdateFormSchema) as z.ZodType<FormValues>,
     [mode],
   )
 

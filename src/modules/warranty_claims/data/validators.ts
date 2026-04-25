@@ -14,6 +14,15 @@ const requiredUuidSchema = (message: string) =>
     z.string().trim().min(1, message).uuid(message),
   )
 
+const optionalNullableIsoDateStringSchema = z.preprocess(
+  (value) => {
+    if (value == null) return null
+    if (typeof value === 'string' && value.trim() === '') return null
+    return value
+  },
+  isoDateStringSchema.nullable(),
+)
+
 export const lookupQuerySchema = z.object({
   q: z.string().optional().default(''),
   query: z.string().optional(),
@@ -57,7 +66,7 @@ const warrantyClaimBaseSchema = z.object({
   status_key: requiredTextSchema('Wybierz status'),
   reported_at: isoDateStringSchema,
   assigned_user_id: requiredUuidSchema('Wybierz osobę przypisaną'),
-  resolved_at: isoDateStringSchema.nullable().optional(),
+  resolved_at: optionalNullableIsoDateStringSchema,
   subcontractor_id: z.string().uuid().nullable().optional(),
 }).strict()
 

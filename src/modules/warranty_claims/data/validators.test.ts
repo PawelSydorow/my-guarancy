@@ -50,6 +50,18 @@ describe('warranty claim validators', () => {
     }
   })
 
+  it('accepts empty resolved date and normalizes it to null', () => {
+    const result = warrantyClaimCreateSchema.safeParse({
+      ...baseValidClaim,
+      resolved_at: '',
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.resolved_at).toBeNull()
+    }
+  })
+
   it('accepts claim number search text as a string', () => {
     const result = warrantyClaimListSchema.safeParse({
       claim_number: '007',

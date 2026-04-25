@@ -5,6 +5,9 @@ import WarrantyClaimForm from './WarrantyClaimForm'
 const fetchCrudListMock = jest.fn()
 const createCrudMock = jest.fn()
 const updateCrudMock = jest.fn()
+let lastCrudFormProps: {
+  schema?: { safeParse: (input: unknown) => { success: boolean } }
+} | null = null
 const comboboxInputMock = jest.fn((props: { placeholder?: string; disabled?: boolean }) => (
   <div data-testid={`combobox-${props.placeholder ?? 'unknown'}`} data-disabled={props.disabled ? 'true' : 'false'} />
 ))
@@ -45,6 +48,7 @@ jest.mock('@open-mercato/ui/backend/utils/crud', () => ({
 jest.mock('@open-mercato/ui/backend/CrudForm', () => ({
   CrudForm: (props: {
     title: string
+    schema?: { safeParse: (input: unknown) => { success: boolean } }
     fields?: Array<{ id: string; label?: string; type?: string; component?: (props: {
       value?: unknown
       values?: Record<string, unknown>
@@ -55,8 +59,10 @@ jest.mock('@open-mercato/ui/backend/CrudForm', () => ({
     groups?: Array<{ id: string; title?: string; component?: (props: { values?: Record<string, unknown> }) => React.ReactNode }>
     initialValues?: Record<string, unknown>
     onSubmit?: (values: Record<string, unknown>) => Promise<void>
-  }) => (
-    <div data-testid="crud-form">
+  }) => {
+    lastCrudFormProps = props
+    return (
+      <div data-testid="crud-form">
       <div>{props.title}</div>
       {(props.fields ?? []).map((field) => (
         <div key={field.id} data-testid={`field-${field.id}`}>
@@ -86,8 +92,9 @@ jest.mock('@open-mercato/ui/backend/CrudForm', () => ({
       >
         submit
       </button>
-    </div>
-  ),
+      </div>
+    )
+  },
 }))
 
 function mockJsonResponse(body: unknown) {
@@ -99,6 +106,7 @@ function mockJsonResponse(body: unknown) {
 
 describe('WarrantyClaimForm attachments', () => {
   beforeEach(() => {
+    lastCrudFormProps = null
     attachmentsSectionMock.mockClear()
     fetchCrudListMock.mockReset()
     createCrudMock.mockReset()
@@ -184,6 +192,63 @@ describe('WarrantyClaimForm attachments', () => {
       expect(screen.getByTestId('combobox-Wybierz projekt').getAttribute('data-disabled')).toBe('true')
       expect(document.querySelector('[aria-hidden="true"]')).not.toBeNull()
     })
+  })
+
+  it('accepts read-only claim number in edit form schema validation', async () => {
+    fetchCrudListMock.mockResolvedValue({
+      items: [
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          organization_id: 'org-1',
+          tenant_id: 'tenant-1',
+          is_active: true,
+          project_id: '11111111-1111-4111-8111-111111111111',
+          claim_number: 7,
+          claim_number_formatted: '007',
+          title: 'Claim title',
+          issue_description: 'Issue description',
+          location_text: 'Location',
+          priority_key: 'high',
+          category_key: 'facade',
+          bas_number: 'BAS-1',
+          status_key: 'open',
+          reported_at: '2026-04-21T10:00:00.000Z',
+          assigned_user_id: '22222222-2222-4222-8222-222222222222',
+          resolved_at: null,
+          subcontractor_id: null,
+          subcontractor_name: null,
+          subcontractor_address: null,
+          subcontractor_email: null,
+          subcontractor_phone: null,
+          subcontractor_contact_person: null,
+          created_at: '2026-04-21T10:00:00.000Z',
+          updated_at: '2026-04-21T10:00:00.000Z',
+        },
+      ],
+    })
+
+    render(<WarrantyClaimForm mode="edit" claimId="33333333-3333-4333-8333-333333333333" />)
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('007')).not.toBeNull()
+    })
+
+    expect(lastCrudFormProps?.schema?.safeParse({
+      id: '33333333-3333-4333-8333-333333333333',
+      claim_number: '007',
+      project_id: '11111111-1111-4111-8111-111111111111',
+      title: 'Claim title',
+      issue_description: 'Issue description',
+      location_text: 'Location',
+      priority_key: 'high',
+      category_key: 'facade',
+      bas_number: 'BAS-1',
+      status_key: 'open',
+      reported_at: '2026-04-21T10:00:00.000Z',
+      assigned_user_id: '22222222-2222-4222-8222-222222222222',
+      resolved_at: null,
+      subcontractor_id: null,
+    }).success).toBe(true)
   })
 
   it('transfers temporary attachments after create', async () => {
