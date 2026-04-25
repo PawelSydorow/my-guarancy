@@ -29,21 +29,38 @@ describe('portal warranty claims contract', () => {
     expect(portalClaimCreateSchema.parse({
       title: 'Nowa usterka',
       issueDescription: 'Opis usterki przekraczajacy minimalna dlugosc.',
-      categoryKey: 'usterka',
-      projectId: '11111111-1111-4111-8111-111111111111',
+      locationText: 'Klatka A',
+      categoryKey: 'elewacja',
     })).toEqual({
       title: 'Nowa usterka',
       issueDescription: 'Opis usterki przekraczajacy minimalna dlugosc.',
-      locationText: '',
+      locationText: 'Klatka A',
       priorityKey: 'sredni',
-      categoryKey: 'usterka',
-      projectId: '11111111-1111-4111-8111-111111111111',
+      categoryKey: 'elewacja',
     })
 
     expect(() => portalClaimCreateSchema.parse({
       title: 'Nowa usterka',
       issueDescription: 'Opis usterki przekraczajacy minimalna dlugosc.',
-      categoryKey: 'usterka',
+      locationText: 'Klatka A',
+      categoryKey: 'elewacja',
+      statusKey: 'zakonczone',
+    })).toThrow()
+  })
+
+  it('rejects missing location and forbidden internal fields', () => {
+    expect(() => portalClaimCreateSchema.parse({
+      title: 'Nowa usterka',
+      issueDescription: 'Opis usterki przekraczajacy minimalna dlugosc.',
+      priorityKey: 'sredni',
+      categoryKey: 'elewacja',
+    })).toThrow()
+
+    expect(() => portalClaimCreateSchema.parse({
+      title: 'Nowa usterka',
+      issueDescription: 'Opis usterki przekraczajacy minimalna dlugosc.',
+      locationText: 'Klatka A',
+      categoryKey: 'elewacja',
       projectId: '11111111-1111-4111-8111-111111111111',
       statusKey: 'zakonczone',
     })).toThrow()

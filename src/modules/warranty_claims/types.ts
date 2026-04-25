@@ -12,7 +12,7 @@ export type WarrantyClaimRecord = {
   issue_description: string
   location_text: string
   priority_key: string
-  category_key: string
+  category_key: string | null
   bas_number: string
   status_key: string
   reported_at: string

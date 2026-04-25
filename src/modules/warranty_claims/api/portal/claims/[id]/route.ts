@@ -11,13 +11,14 @@ const paramsSchema = z.object({
   id: z.string().uuid(),
 })
 
-export async function GET(request: Request, ctx?: { params?: { id?: string } }) {
+export async function GET(request: Request, ctx?: { params?: Promise<{ id?: string }> }) {
   const context = await resolvePortalWarrantyClaimsScope(request)
   if (!context.scope || !context.container) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const parsed = paramsSchema.safeParse(ctx?.params ?? {})
+  const routeParams = ctx?.params ? await ctx.params : {}
+  const parsed = paramsSchema.safeParse(routeParams)
   if (!parsed.success) {
     return Response.json({ error: 'Invalid id' }, { status: 400 })
   }

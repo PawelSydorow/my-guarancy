@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     const entity = em.create(WarrantyClaim, mapPreparedClaimToEntity(prepared, context.scope))
     await em.persistAndFlush(entity)
 
-    return Response.json(toPortalClaimRecord(entity), { status: 201 })
+    return Response.json({ id: entity.id }, { status: 201 })
   } catch (error) {
     if (error instanceof SyntaxError) {
       return Response.json({ error: 'Invalid JSON body' }, { status: 400 })

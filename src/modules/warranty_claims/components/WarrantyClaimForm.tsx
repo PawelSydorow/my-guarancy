@@ -16,10 +16,9 @@ import {
   WARRANTY_DEFAULT_CREATE_PRIORITY_KEY,
   WARRANTY_DEFAULT_CREATE_STATUS_KEY,
 } from '../lib/constants'
+import { ATTACHMENTS_LIBRARY_ENTITY_ID, createDraftAttachmentRecordId, transferDraftAttachments } from '../lib/attachments'
 import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_SEGMENT_CLASSES } from '../lib/statusStyles'
 import { warrantyClaimCreateSchema, warrantyClaimUpdateSchema } from '../data/validators'
-
-const ATTACHMENTS_LIBRARY_ENTITY_ID = 'attachments:library'
 
 type FormValues = {
   id?: string
@@ -219,40 +218,6 @@ function HiddenInitialFocusTarget() {
   )
 }
 
-function createDraftAttachmentRecordId() {
-  const randomPart = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-  return `warranty-claim-create:${randomPart}`
-}
-
-async function fetchAttachmentIds(entityId: string, recordId: string) {
-  const params = new URLSearchParams({ entityId, recordId })
-  const response = await fetch(`/api/attachments?${params.toString()}`, { credentials: 'include' })
-  if (!response.ok) throw new Error('Nie udalo sie pobrac listy zalacznikow')
-  const payload = await response.json() as { items?: Array<{ id?: string | null }> }
-  return (payload.items ?? [])
-    .map((item) => (typeof item.id === 'string' ? item.id : null))
-    .filter((id): id is string => Boolean(id))
-}
-
-async function transferDraftAttachments(draftRecordId: string, claimId: string) {
-  const attachmentIds = await fetchAttachmentIds(ATTACHMENTS_LIBRARY_ENTITY_ID, draftRecordId)
-  if (!attachmentIds.length) return
-  const response = await fetch('/api/attachments/transfer', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      sourceEntityId: ATTACHMENTS_LIBRARY_ENTITY_ID,
-      targetEntityId: WARRANTY_CLAIM_ENTITY_ID,
-      attachmentIds,
-      fromRecordId: draftRecordId,
-      toRecordId: claimId,
-    }),
-  })
-  if (!response.ok) throw new Error('Nie udalo sie przypiac zalacznikow do zgloszenia')
-}
 
 async function fetchLookupItems(endpoint: string, query = '', extraParams?: Record<string, string | null | undefined>) {
   const params = new URLSearchParams()
@@ -337,7 +302,7 @@ export default function WarrantyClaimForm({
           issue_description: claim.issue_description,
           location_text: claim.location_text,
           priority_key: claim.priority_key,
-          category_key: claim.category_key,
+          category_key: claim.category_key ?? '',
           bas_number: claim.bas_number,
           status_key: claim.status_key,
           reported_at: formatDateForInput(claim.reported_at),

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { Notice } from '@open-mercato/ui/primitives/Notice'
@@ -28,6 +29,7 @@ function formatDate(value: string | null | undefined, withTime = false) {
 }
 
 export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
+  const searchParams = useSearchParams()
   const claimQuery = useQuery<PortalClaimRecord>({
     queryKey: ['portal-warranty-claim', orgSlug, claimId],
     queryFn: async () => {
@@ -66,12 +68,17 @@ export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
   const claim = claimQuery.data
   const lookups = lookupsQuery.data
   const projectLabel = lookups?.projects.find((item) => item.id === claim.projectId)?.label ?? claim.projectId
-  const categoryLabel = lookups?.categories.find((item) => item.id === claim.categoryKey)?.label ?? claim.categoryKey
   const priorityLabel = lookups?.priorities.find((item) => item.id === claim.priorityKey)?.label ?? claim.priorityKey
   const lookupsLoading = lookupsQuery.isLoading && !lookupsQuery.data
+  const showAttachmentWarning = searchParams.get('attachments') === 'partial'
 
   return (
     <div className="space-y-6">
+      {showAttachmentWarning ? (
+        <Notice variant="error">
+          Zgloszenie zostalo zapisane, ale zalaczniki nie zostaly przypiete.
+        </Notice>
+      ) : null}
       <PortalPageHeader
         label="Portal klienta"
         title={claim.title}
@@ -105,10 +112,6 @@ export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Projekt</p>
                 <p className="text-sm text-foreground">{lookupsLoading ? 'Ladowanie...' : projectLabel}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Kategoria</p>
-                <p className="text-sm text-foreground">{lookupsLoading ? 'Ladowanie...' : categoryLabel}</p>
               </div>
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Utworzono</p>

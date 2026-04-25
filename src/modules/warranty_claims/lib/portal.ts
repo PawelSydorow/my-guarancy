@@ -21,10 +21,9 @@ export const portalClaimsListQuerySchema = z.object({
 export const portalClaimCreateSchema = z.object({
   title: z.string().trim().min(3).max(200),
   issueDescription: z.string().trim().min(10).max(5000),
-  locationText: z.string().trim().max(300).optional().default(''),
+  locationText: z.string().trim().min(1).max(300),
   priorityKey: z.string().trim().min(1).optional().default(WARRANTY_DEFAULT_CREATE_PRIORITY_KEY),
   categoryKey: z.string().trim().min(1, 'Category is required'),
-  projectId: z.string().uuid('Project is required'),
 }).strict()
 
 export type PortalClaimsListQuery = z.infer<typeof portalClaimsListQuerySchema>

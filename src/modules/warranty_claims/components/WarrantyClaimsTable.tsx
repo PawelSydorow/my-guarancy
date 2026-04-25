@@ -209,7 +209,7 @@ export default function WarrantyClaimsTable() {
       meta: { priority: 1 },
       cell: ({ row }) => (
         <span className="inline-flex min-h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
-          {categoryMap.get(row.original.category_key) ?? row.original.category_key}
+          {(row.original.category_key ? categoryMap.get(row.original.category_key) : null) ?? row.original.category_key ?? '—'}
         </span>
       ),
     },

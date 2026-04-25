@@ -3,10 +3,11 @@ import { Dictionary, DictionaryEntry } from '@open-mercato/core/modules/dictiona
 import { User } from '@open-mercato/core/modules/auth/data/entities'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { Project, ProjectSubcontractor, WarrantyClaim } from '../data/entities'
-import { formatClaimNumber, prepareClaimInput, serializeClaimRecord } from './claim-logic'
+import { formatClaimNumber, prepareClaimInput, preparePortalClaimInput, serializeClaimRecord } from './claim-logic'
 
 function createEntityManagerMock(config?: {
   projectActive?: boolean
+  projectList?: Project[]
   userExists?: boolean
   activeSubcontractor?: ProjectSubcontractor | null
   historicalSubcontractor?: ProjectSubcontractor | null
@@ -53,6 +54,12 @@ function createEntityManagerMock(config?: {
         }
         return () => chain
       },
+    }),
+    find: jest.fn(async (entity: unknown) => {
+      if (entity === Project) {
+        return config?.projectList ?? []
+      }
+      return []
     }),
   }
 
@@ -335,5 +342,61 @@ describe('claim number formatting', () => {
 
     expect(result.claim_number).toBe(7)
     expect(result.claim_number_formatted).toBe('007')
+  })
+})
+
+describe('preparePortalClaimInput', () => {
+  it('selects the first active project ordered by name and sets internal defaults', async () => {
+    const em = createEntityManagerMock({
+      projectList: [
+        { id: 'project-2', name: 'B Projekt' } as Project,
+        { id: 'project-1', name: 'A Projekt' } as Project,
+      ],
+    })
+
+    const result = await preparePortalClaimInput(em, SCOPE, {
+      title: '  Nieszczelne okno  ',
+      issueDescription: '  Opis usterki przekraczajacy minimalna dlugosc.  ',
+      locationText: '  Budynek A / lokal 2  ',
+      priorityKey: ' wysoki ',
+      categoryKey: ' elewacja ',
+    })
+
+    expect((em as unknown as { find: jest.Mock }).find).toHaveBeenCalledWith(Project, expect.objectContaining({
+      tenantId: SCOPE.tenantId,
+      organizationId: SCOPE.organizationId,
+      isActive: true,
+      deletedAt: null,
+    }), expect.objectContaining({
+      orderBy: { name: 'asc' },
+      limit: 1,
+    }))
+    expect(result.project_id).toBe('project-1')
+    expect(result.status_key).toBe('oczekuje')
+    expect(result.assigned_user_id).toBeNull()
+    expect(result.subcontractor_id).toBeNull()
+    expect(result.resolved_at).toBeNull()
+    expect(result.bas_number).toBe('')
+    expect(result.category_key).toBe('elewacja')
+    expect(result.title).toBe('Nieszczelne okno')
+    expect(result.location_text).toBe('Budynek A / lokal 2')
+    expect(result.issue_description).toBe('Opis usterki przekraczajacy minimalna dlugosc.')
+    expect(result.priority_key).toBe('wysoki')
+  })
+
+  it('returns 409 when organization has no active project', async () => {
+    const em = createEntityManagerMock({ projectList: [] })
+
+    await expect(
+      preparePortalClaimInput(em, SCOPE, {
+        title: 'Nowa usterka',
+        issueDescription: 'Opis usterki przekraczajacy minimalna dlugosc.',
+        locationText: 'Klatka A',
+        categoryKey: 'elewacja',
+      }),
+    ).rejects.toMatchObject({
+      status: 409,
+      body: { error: 'Brak aktywnego projektu dla organizacji klienta' },
+    })
   })
 })

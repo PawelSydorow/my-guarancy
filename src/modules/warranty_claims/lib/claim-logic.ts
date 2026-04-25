@@ -17,10 +17,9 @@ type ClaimMutationInput = WarrantyClaimCreateInput | WarrantyClaimUpdateInput
 export type PortalPreparedClaimInput = {
   title: string
   issueDescription: string
-  locationText?: string
+  locationText: string
   priorityKey?: string
   categoryKey: string
-  projectId: string
 }
 
 type ClaimEntityInput = {
@@ -155,6 +154,25 @@ async function resolveProject(
     })
   }
   return null
+}
+
+async function resolveFirstActiveProject(
+  em: EntityManager,
+  scope: Scope,
+): Promise<Project | null> {
+  const projects = await em.find(Project, {
+    tenantId: scope.tenantId,
+    organizationId: scope.organizationId,
+    isActive: true,
+    deletedAt: null,
+  }, {
+    orderBy: { name: 'asc' },
+    limit: 1,
+  })
+
+  return [...projects]
+    .sort((left, right) => left.name.localeCompare(right.name, 'pl'))
+    [0] ?? null
 }
 
 async function resolveSubcontractor(
@@ -316,16 +334,15 @@ export async function preparePortalClaimInput(
   scope: Scope,
   input: PortalPreparedClaimInput,
 ): Promise<ClaimEntityInput> {
-  const projectId = cleanText(input.projectId)
   const title = cleanText(input.title)
   const issueDescription = cleanText(input.issueDescription)
-  const locationText = cleanText(input.locationText ?? '')
+  const locationText = cleanText(input.locationText)
   const priorityKey = cleanText(input.priorityKey ?? WARRANTY_DEFAULT_CREATE_PRIORITY_KEY)
   const categoryKey = cleanText(input.categoryKey)
 
-  const project = await resolveProject(em, scope, projectId)
+  const project = await resolveFirstActiveProject(em, scope)
   if (!project) {
-    throw new CrudHttpError(400, { error: 'Selected project does not exist or is inactive' })
+    throw new CrudHttpError(409, { error: 'Brak aktywnego projektu dla organizacji klienta' })
   }
 
   await assertDictionaryEntryExists(em, scope, WARRANTY_DICTIONARY_KEYS.status, WARRANTY_STATUS_KEYS.pending)
@@ -341,11 +358,11 @@ export async function preparePortalClaimInput(
     bas_number: '',
     status_key: WARRANTY_STATUS_KEYS.pending,
     reported_at: new Date().toISOString(),
-    project_id: projectId,
+    project_id: project.id,
     assigned_user_id: null,
     resolved_at: null,
     subcontractor_id: null,
-    claim_number: await resolveNextClaimNumber(em, scope, projectId),
+    claim_number: await resolveNextClaimNumber(em, scope, project.id),
   }
 }
 
