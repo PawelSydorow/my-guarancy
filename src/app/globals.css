@@ -146,9 +146,9 @@ TODO: Fix that latter to have reference by the package names
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgb(255 255 255 / 0.12);
   --sidebar-ring: rgb(0 103 255 / 0.5);
-  --portal-sidebar-bg-start: #ffffff;
-  --portal-sidebar-bg-mid: #ffffff;
-  --portal-sidebar-bg-end: #ffffff;
+  --portal-sidebar-bg-start: #f3f4f6;
+  --portal-sidebar-bg-mid: #f3f4f6;
+  --portal-sidebar-bg-end: #f3f4f6;
   --portal-sidebar-accent: transparent;
   --portal-sidebar-accent-alt: transparent;
   --portal-sidebar-grid-primary: transparent;
@@ -237,9 +237,9 @@ TODO: Fix that latter to have reference by the package names
   --sidebar-accent-foreground: #f0f0f8;
   --sidebar-border: rgb(255 255 255 / 0.12);
   --sidebar-ring: rgb(51 135 255 / 0.5);
-  --portal-sidebar-bg-start: #ffffff;
-  --portal-sidebar-bg-mid: #ffffff;
-  --portal-sidebar-bg-end: #ffffff;
+  --portal-sidebar-bg-start: #f3f4f6;
+  --portal-sidebar-bg-mid: #f3f4f6;
+  --portal-sidebar-bg-end: #f3f4f6;
   --portal-sidebar-accent: transparent;
   --portal-sidebar-accent-alt: transparent;
   --portal-sidebar-grid-primary: transparent;
@@ -786,6 +786,11 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     z-index: 20;
   }
 
+  aside:has([data-portal-handle="section:portal:sidebar"]) {
+    background: var(--portal-sidebar-bg-start) !important;
+    background-image: none !important;
+  }
+
   [data-portal-handle="section:portal:sidebar"]::before {
     content: "";
     position: absolute;
@@ -888,7 +893,8 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
-    background: var(--portal-sidebar-bg-start);
+    background: var(--portal-sidebar-bg-start) !important;
+    background-image: none !important;
     color: var(--portal-sidebar-text);
   }
 

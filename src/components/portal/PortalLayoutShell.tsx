@@ -310,15 +310,15 @@ function ShellFrame({
   }
 
   return (
-      <div className="flex min-h-svh bg-white" data-customer-portal-shell="authenticated">
-      <aside className="hidden w-[288px] shrink-0 border-r border-slate-200 bg-white lg:block">
+      <div className="flex min-h-svh bg-slate-50" data-customer-portal-shell="authenticated">
+      <aside className="hidden w-[288px] shrink-0 border-r border-slate-200 bg-slate-100 lg:block">
         {sidebar}
       </aside>
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <aside className="relative z-10 h-full w-[288px] border-r border-slate-200 bg-white shadow-2xl">
+          <aside className="relative z-10 h-full w-[288px] border-r border-slate-200 bg-slate-100 shadow-2xl">
             <div className="absolute right-3 top-3 z-20">
               <IconButton variant="ghost" size="sm" type="button" onClick={() => setMobileOpen(false)} aria-label="Close menu" className="text-slate-500 hover:bg-slate-100 hover:text-slate-900">
                 <XIcon className="size-4" />
@@ -330,7 +330,7 @@ function ShellFrame({
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-white/80 lg:px-8">
+        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-slate-50/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-slate-50/80 lg:px-8">
           <div className="flex items-center gap-3">
             <IconButton
               variant="ghost"
@@ -354,7 +354,7 @@ function ShellFrame({
           </div>
         </main>
 
-        <footer className="border-t border-slate-200 bg-white/80 px-4 py-4 lg:px-8">
+        <footer className="border-t border-slate-200 bg-slate-50/80 px-4 py-4 lg:px-8">
           <p className="text-[11px] text-muted-foreground/50">
             {t('portal.footer.copyright', 'Copyright {year} All rights reserved.', { year: new Date().getFullYear() })}
           </p>
