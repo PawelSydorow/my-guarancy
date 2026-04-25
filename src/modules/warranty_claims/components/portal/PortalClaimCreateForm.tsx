@@ -9,7 +9,6 @@ import { Button } from '@open-mercato/ui/primitives/button'
 import { Input } from '@open-mercato/ui/primitives/input'
 import { Label } from '@open-mercato/ui/primitives/label'
 import { Notice } from '@open-mercato/ui/primitives/Notice'
-import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { ATTACHMENTS_LIBRARY_ENTITY_ID, createDraftAttachmentRecordId, transferDraftAttachments } from '../../lib/attachments'
 import { WARRANTY_DEFAULT_CREATE_PRIORITY_KEY } from '../../lib/constants'
@@ -28,45 +27,85 @@ type FormValues = {
   categoryKey: string
 }
 
-const FIELD_CLASS = 'w-full rounded-none border border-input bg-background px-3 py-2 text-sm shadow-none outline-none transition-[color,box-shadow,border-color] focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/50'
+const FIELD_INPUT_CLASS =
+  'w-full min-h-11 rounded-none border border-input bg-background px-3 py-2 text-sm shadow-none outline-none transition-[color,box-shadow,border-color] focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground'
 
-function Field({
-  label,
-  required,
-  children,
-}: {
-  label: string
-  required?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <div className="space-y-2">
-      <Label className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-        {label}
-        {required ? <span className="text-destructive"> *</span> : null}
-      </Label>
-      {children}
-    </div>
-  )
-}
-
-function FormSection({
+function FormCard({
   title,
   description,
   children,
+  className,
 }: {
   title: string
   description?: string
   children: React.ReactNode
+  className?: string
 }) {
   return (
-    <PortalCard className="rounded-none border-border/70">
-      <div className="space-y-1 border-b border-border/70 pb-4">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
-        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+    <section className={['rounded-lg border bg-card px-4 py-4 sm:px-5 sm:py-5', className].filter(Boolean).join(' ')}>
+      <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{title}</h2>
+      {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
+      <div className="mt-4">{children}</div>
+    </section>
+  )
+}
+
+function FieldFrame({
+  label,
+  required,
+  error,
+  children,
+}: {
+  label: string
+  required?: boolean
+  error?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="text-sm font-medium text-foreground">
+        {label}
+        {required ? <span className="text-destructive"> *</span> : null}
       </div>
-      <div className="pt-5">{children}</div>
-    </PortalCard>
+      {children}
+      {error ? <div className="text-xs text-destructive">{error}</div> : null}
+    </div>
+  )
+}
+
+function SegmentedSelectField({
+  value,
+  options,
+  onChange,
+  colorMap,
+}: {
+  value?: unknown
+  options: Array<{ value: string; label: string }>
+  onChange: (value: string | undefined) => void
+  colorMap?: Record<string, string>
+}) {
+  const selectedValue = typeof value === 'string' ? value : ''
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((option) => {
+        const isActive = option.value === selectedValue
+        const toneClass = colorMap?.[option.value] ?? 'border-slate-200 bg-slate-50 text-slate-700'
+        return (
+          <button
+            key={option.value}
+            type="button"
+            className={[
+              'inline-flex min-h-11 items-center rounded-none border px-3 text-sm font-semibold transition-colors',
+              isActive ? toneClass : 'border-border bg-background text-muted-foreground',
+            ].join(' ')}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
@@ -87,10 +126,13 @@ export default function PortalClaimCreateForm({ orgSlug }: Props) {
     queryKey: ['portal-warranty-claim-create-lookups', orgSlug],
     queryFn: async () => {
       const response = await fetch('/api/warranty_claims/portal/lookups', { credentials: 'include' })
-      if (!response.ok) throw new Error('Nie udalo sie zaladowac slownikow formularza.')
+      if (!response.ok) throw new Error('Nie udało się załadować słowników formularza.')
       return await response.json()
     },
   })
+
+  const categories = lookupsQuery.data?.categories ?? []
+  const priorities = lookupsQuery.data?.priorities ?? []
 
   const updateValue = React.useCallback(<K extends keyof FormValues>(key: K, nextValue: FormValues[K]) => {
     setValues((current) => ({ ...current, [key]: nextValue }))
@@ -111,12 +153,12 @@ export default function PortalClaimCreateForm({ orgSlug }: Props) {
 
       const payload = await response.json().catch(() => null)
       if (!response.ok) {
-        throw new Error(typeof payload?.error === 'string' ? payload.error : 'Nie udalo sie utworzyc zgloszenia.')
+        throw new Error(typeof payload?.error === 'string' ? payload.error : 'Nie udało się utworzyć zgłoszenia.')
       }
 
       const claimId = typeof payload?.id === 'string' ? payload.id : null
       if (!claimId) {
-        throw new Error('Nie udalo sie odczytac identyfikatora nowego zgloszenia.')
+        throw new Error('Nie udało się odczytać identyfikatora nowego zgłoszenia.')
       }
 
       let detailHref = `/${orgSlug}/portal/warranty-claims/${claimId}`
@@ -128,18 +170,30 @@ export default function PortalClaimCreateForm({ orgSlug }: Props) {
 
       router.push(detailHref)
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Nie udalo sie utworzyc zgloszenia.')
+      setError(nextError instanceof Error ? nextError.message : 'Nie udało się utworzyć zgłoszenia.')
     } finally {
       setSubmitting(false)
     }
   }, [draftAttachmentRecordId, orgSlug, router, values])
 
+  const handleKeyboardSubmit = React.useCallback((event: React.KeyboardEvent<HTMLFormElement>) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter' && !submitting) {
+      event.preventDefault()
+      const form = event.currentTarget
+      if (form.requestSubmit) {
+        form.requestSubmit()
+      } else {
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+      }
+    }
+  }, [submitting])
+
   return (
     <div className="space-y-6">
       <PortalPageHeader
         label="Portal klienta"
-        title="Nowe zgloszenie gwarancyjne"
-        description="Uzupelnij podstawowe dane, a status zostanie ustawiony automatycznie na oczekuje."
+        title="Nowe zgłoszenie gwarancyjne"
+        description="Wypełnij dane podstawowe, opisz problem i dodaj załączniki. Układ odpowiada formularzom używanym w backendzie."
         action={(
           <Button asChild variant="outline" className="rounded-none">
             <Link href={`/${orgSlug}/portal/warranty-claims`}>Anuluj</Link>
@@ -147,152 +201,148 @@ export default function PortalClaimCreateForm({ orgSlug }: Props) {
         )}
       />
 
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        {error ? <Notice variant="error">{error}</Notice> : null}
-        {lookupsQuery.isError ? (
-          <Notice variant="error">
-            {lookupsQuery.error instanceof Error ? lookupsQuery.error.message : 'Nie udalo sie zaladowac formularza.'}
-          </Notice>
-        ) : null}
+      {error ? <Notice variant="error">{error}</Notice> : null}
+      {lookupsQuery.isError ? (
+        <Notice variant="error">
+          {lookupsQuery.error instanceof Error ? lookupsQuery.error.message : 'Nie udało się załadować formularza.'}
+        </Notice>
+      ) : null}
 
-        <FormSection
-          title="Dane podstawowe"
-          description="Status nowego zgloszenia zostanie ustawiony automatycznie na oczekuje."
-        >
-          <div className="space-y-5">
-            <div className="rounded-none border border-dashed border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-              Projekt zostanie przypisany automatycznie na podstawie pierwszego aktywnego projektu Twojej organizacji.
-            </div>
-            <Field label="Kategoria" required>
-              <select
-                value={values.categoryKey}
-                onChange={(event) => updateValue('categoryKey', event.target.value)}
-                className="w-full rounded-none border border-input bg-background px-3 py-2 text-sm shadow-none outline-none transition-[color,box-shadow,border-color] focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/50"
-                disabled={submitting || lookupsQuery.isLoading}
-                required
-              >
-                <option value="">Wybierz kategorię</option>
-                {(lookupsQuery.data?.categories ?? []).map((item) => (
-                  <option key={item.id} value={item.id}>{item.label}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Priorytet">
-              <p className="text-xs text-muted-foreground">
-                Domyslnie wybrany jest priorytet startowy, ale mozesz go zmienic przed wyslaniem.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {(lookupsQuery.data?.priorities ?? []).map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={[
-                      'rounded-none border px-3 py-2 text-xs font-semibold transition-colors',
-                      values.priorityKey === item.id
-                        ? (WARRANTY_PRIORITY_SEGMENT_CLASSES[item.id] ?? 'border-foreground bg-foreground text-background')
-                        : 'border-border bg-background text-muted-foreground hover:text-foreground',
-                    ].join(' ')}
-                    onClick={() => updateValue('priorityKey', item.id)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+      <form className="space-y-6" onSubmit={handleSubmit} onKeyDown={handleKeyboardSubmit}>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
+          <FormCard
+            title="Dane podstawowe"
+            description="Najpierw uzupełnij pola, które są potrzebne do klasyfikacji zgłoszenia."
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <FieldFrame label="Tytuł" required>
+                  <Input
+                    value={values.title}
+                    onChange={(event) => updateValue('title', event.target.value)}
+                    minLength={3}
+                    maxLength={200}
+                    className={FIELD_INPUT_CLASS}
+                    placeholder="Wpisz tytuł zgłoszenia"
+                    disabled={submitting}
+                    required
+                  />
+                </FieldFrame>
               </div>
-            </Field>
-          </div>
-        </FormSection>
 
-        <FormSection
-          title="Opis"
-          description="Uzupelnij dane problemu widoczne pozniej w szczegolach zgloszenia."
-        >
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Field label="Tytul" required>
-              <Input
-                value={values.title}
-                onChange={(event) => updateValue('title', event.target.value)}
-                minLength={3}
-                maxLength={200}
-                className="rounded-none"
-                disabled={submitting}
-                required
-              />
-            </Field>
+              <div className="sm:col-span-2">
+                <FieldFrame label="Pilność">
+                  <SegmentedSelectField
+                    value={values.priorityKey}
+                    options={priorities.map((item) => ({ value: item.id, label: item.label }))}
+                    onChange={(nextValue) => updateValue('priorityKey', nextValue ?? values.priorityKey)}
+                    colorMap={WARRANTY_PRIORITY_SEGMENT_CLASSES}
+                  />
+                </FieldFrame>
+              </div>
 
-            <Field label="Lokalizacja" required>
-              <Input
-                value={values.locationText}
-                onChange={(event) => updateValue('locationText', event.target.value)}
-                minLength={1}
-                maxLength={300}
-                className="rounded-none"
-                disabled={submitting}
-                required
-              />
-            </Field>
+              <div className="sm:col-span-2">
+                <FieldFrame label="Opis usterki" required>
+                  <textarea
+                    value={values.issueDescription}
+                    onChange={(event) => updateValue('issueDescription', event.target.value)}
+                    minLength={10}
+                    maxLength={5000}
+                    rows={8}
+                    className={`${FIELD_INPUT_CLASS} min-h-[12rem] resize-y`}
+                    placeholder="Opisz problem"
+                    disabled={submitting}
+                    required
+                  />
+                </FieldFrame>
+              </div>
+            </div>
+          </FormCard>
 
-            <div className="lg:col-span-2">
-              <Field label="Opis usterki" required>
-                <textarea
-                  value={values.issueDescription}
-                  onChange={(event) => updateValue('issueDescription', event.target.value)}
-                  minLength={10}
-                  maxLength={5000}
-                  rows={8}
-                  className={`${FIELD_CLASS} min-h-[12rem] resize-y`}
+          <FormCard
+            title="Opis i załączniki"
+            description="Dodaj szczegóły zgłoszenia i pliki w jednym kroku."
+          >
+            <div className="space-y-6">
+              <FieldFrame label="Lokalizacja" required>
+                <Input
+                  value={values.locationText}
+                  onChange={(event) => updateValue('locationText', event.target.value)}
+                  minLength={1}
+                  maxLength={300}
+                  className={FIELD_INPUT_CLASS}
+                  placeholder="Wpisz lokalizację"
                   disabled={submitting}
                   required
                 />
-              </Field>
+              </FieldFrame>
+
+              <FieldFrame label="Kategoria" required>
+                <select
+                  value={values.categoryKey}
+                  onChange={(event) => updateValue('categoryKey', event.target.value)}
+                  className={FIELD_INPUT_CLASS}
+                  disabled={submitting || lookupsQuery.isLoading}
+                  required
+                >
+                  <option value="">Wybierz kategorię</option>
+                  {categories.map((item) => (
+                    <option key={item.id} value={item.id}>{item.label}</option>
+                  ))}
+                </select>
+              </FieldFrame>
+
+              <div className="space-y-3">
+                <div className="text-sm font-medium text-foreground">Załączniki</div>
+                <AttachmentsSection
+                  entityId={ATTACHMENTS_LIBRARY_ENTITY_ID}
+                  recordId={draftAttachmentRecordId}
+                  showHeader={false}
+                  compact
+                  className={[
+                    'space-y-1.5',
+                    '[&_.grid]:gap-1.5',
+                    '[&_.grid>button]:rounded-md',
+                    '[&_.grid>button>div:first-child]:aspect-[4/3]',
+                    '[&_.grid>button>div:first-child]:flex',
+                    '[&_.grid>button>div:first-child]:items-center',
+                    '[&_.grid>button>div:first-child]:justify-center',
+                    '[&_.grid>button>div:first-child]:overflow-hidden',
+                    '[&_.grid>button>div:first-child]:p-0',
+                    '[&_.grid>button>div:first-child>img]:h-full',
+                    '[&_.grid>button>div:first-child>img]:w-full',
+                    '[&_.grid>button>div:first-child>img]:object-cover',
+                    '[&_.grid>button>div:first-child>img]:max-h-none',
+                    '[&_.grid>button>div:first-child>img]:max-w-none',
+                    '[&_.grid>button>div:first-child>div]:h-full',
+                    '[&_.grid>button>div:first-child>div]:w-full',
+                    '[&_.grid>button>div:last-child]:p-1.5',
+                    '[&_.grid>button>div:last-child>div:first-child]:text-[10px]',
+                    '[&_.grid>button>div:last-child>div:last-child]:text-[9px]',
+                    '[&_.border-dashed]:px-3',
+                    '[&_.border-dashed]:py-3',
+                    '[&_.border-dashed>svg]:h-4',
+                    '[&_.border-dashed>svg]:w-4',
+                    '[&_.border-dashed>.mt-2]:mt-1',
+                    '[&_.border-dashed>.mt-4]:mt-1.5',
+                    '[&_.border-dashed>.mt-4]:px-2',
+                    '[&_.border-dashed>.mt-4]:py-1',
+                  ].join(' ')}
+                />
+              </div>
             </div>
+          </FormCard>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-lg border bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="outline" className="rounded-none" asChild>
+              <Link href={`/${orgSlug}/portal/warranty-claims`}>Anuluj</Link>
+            </Button>
+            <Button type="submit" className="rounded-none" disabled={submitting || lookupsQuery.isLoading}>
+              {submitting ? 'Zapisywanie...' : 'Utwórz zgłoszenie'}
+            </Button>
           </div>
-        </FormSection>
-
-        <FormSection
-          title="Zalaczniki"
-          description="Pliki zapisują się tymczasowo od razu po dodaniu lub usunięciu. Po utworzeniu zgłoszenia zostaną przypięte do rekordu."
-        >
-          <AttachmentsSection
-            entityId={ATTACHMENTS_LIBRARY_ENTITY_ID}
-            recordId={draftAttachmentRecordId}
-            showHeader={false}
-            compact
-            className={[
-              'space-y-1.5',
-              '[&_.grid]:gap-1.5',
-              '[&_.grid>button]:rounded-md',
-              '[&_.grid>button>div:first-child]:aspect-[4/3]',
-              '[&_.grid>button>div:first-child]:flex',
-              '[&_.grid>button>div:first-child]:items-center',
-              '[&_.grid>button>div:first-child]:justify-center',
-              '[&_.grid>button>div:first-child]:overflow-hidden',
-              '[&_.grid>button>div:first-child]:p-0',
-              '[&_.grid>button>div:first-child>img]:h-full',
-              '[&_.grid>button>div:first-child>img]:w-full',
-              '[&_.grid>button>div:first-child>img]:object-cover',
-              '[&_.grid>button>div:first-child>img]:max-h-none',
-              '[&_.grid>button>div:first-child>img]:max-w-none',
-              '[&_.grid>button>div:first-child>div]:h-full',
-              '[&_.grid>button>div:first-child>div]:w-full',
-              '[&_.grid>button>div:last-child]:p-1.5',
-              '[&_.grid>button>div:last-child>div:first-child]:text-[10px]',
-              '[&_.grid>button>div:last-child>div:last-child]:text-[9px]',
-              '[&_.border-dashed]:px-3',
-              '[&_.border-dashed]:py-3',
-              '[&_.border-dashed>svg]:h-4',
-              '[&_.border-dashed>svg]:w-4',
-              '[&_.border-dashed>.mt-2]:mt-1',
-              '[&_.border-dashed>.mt-4]:mt-1.5',
-              '[&_.border-dashed>.mt-4]:px-2',
-              '[&_.border-dashed>.mt-4]:py-1',
-            ].join(' ')}
-          />
-        </FormSection>
-
-        <div className="flex justify-end">
-          <Button type="submit" className="rounded-none" disabled={submitting || lookupsQuery.isLoading}>
-            {submitting ? 'Zapisywanie...' : 'Utworz zgloszenie'}
-          </Button>
         </div>
       </form>
     </div>
