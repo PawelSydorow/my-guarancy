@@ -44,6 +44,14 @@ type PortalNavGroupData = {
   items: PortalNavEntry[]
 }
 
+type PortalMergedNavSeed = {
+  id: string
+  label?: string
+  labelKey?: string
+  href?: string
+  icon?: string
+}
+
 const ICONS = LucideIcons as unknown as Record<string, ComponentType<{ className?: string }>>
 
 function normalizeIconName(icon?: string): string | null {
@@ -94,6 +102,23 @@ function resolveActiveMenuHref(items: Array<{ href?: string }>, pathname: string
   }
 
   return bestHref
+}
+
+function applyInjectedMenuOverrides(
+  builtIn: PortalMergedNavSeed[],
+  injected: InjectionMenuItem[],
+): PortalMergedNavSeed[] {
+  return builtIn.map((item) => {
+    const override = injected.find((candidate) => candidate.id === item.id || (candidate.href && candidate.href === item.href))
+    if (!override) return item
+
+    return {
+      ...item,
+      label: override.label ?? item.label,
+      labelKey: override.labelKey ?? item.labelKey,
+      icon: override.icon ?? item.icon,
+    }
+  })
 }
 
 function MenuIcon({ className }: { className?: string }) {
@@ -162,10 +187,10 @@ function SidebarIcon({
     return (
       <span
         className={cn(
-          'flex size-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset transition-colors',
+          'flex size-7 shrink-0 items-center justify-center transition-colors',
           active
-            ? 'bg-primary/10 text-primary ring-primary/20'
-            : 'bg-slate-100 text-slate-500 ring-slate-200 group-hover:bg-slate-100 group-hover:text-slate-700',
+            ? 'text-white'
+            : 'text-primary group-hover:text-primary',
         )}
       >
         <span className="size-2 rounded-full bg-current" />
@@ -176,13 +201,13 @@ function SidebarIcon({
   return (
     <span
       className={cn(
-        'flex size-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset transition-colors',
+        'flex size-7 shrink-0 items-center justify-center transition-colors',
         active
-          ? 'bg-primary/10 text-primary ring-primary/20'
-          : 'bg-slate-100 text-slate-500 ring-slate-200 group-hover:bg-slate-100 group-hover:text-slate-700',
+          ? 'text-white'
+          : 'text-primary group-hover:text-primary',
       )}
     >
-      <Icon className="size-4" />
+      <Icon className="size-4.5" />
     </span>
   )
 }
@@ -202,22 +227,21 @@ function SidebarNavItem({
   if (!label) return null
 
   const cls = cn(
-    'group relative flex w-full items-center gap-3 overflow-hidden rounded-xl border px-3 py-2.5 text-[13px] font-medium transition-all duration-200',
+    'group relative flex w-full items-center gap-2 overflow-hidden border px-3 py-2.5 text-[13px] font-medium transition-all duration-200',
     active
-      ? 'border-primary/20 bg-primary/10 text-primary shadow-sm shadow-primary/10'
-      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900',
+      ? 'rounded-md border-primary bg-primary text-white shadow-sm shadow-primary/15'
+      : 'rounded-xl border-transparent text-slate-950 hover:bg-slate-100 hover:text-slate-950',
   )
 
   const content = (
     <>
-      {active ? <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary" /> : null}
       <SidebarIcon icon={item.icon} active={active} />
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {item.badge != null ? (
         <span
           className={cn(
             'ml-auto inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-semibold',
-            active ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-600',
+            active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-700',
           )}
         >
           {item.badge}
@@ -470,7 +494,8 @@ function PortalShellFrame({
       href: item.href,
       icon: item.icon,
     }))
-    return mergeMenuItems(builtIn, injectedMainItems)
+    const overriddenBuiltIn = applyInjectedMenuOverrides(builtIn, injectedMainItems)
+    return mergeMenuItems(overriddenBuiltIn, injectedMainItems)
   }, [resolvedAuthenticated, autoNavGroups, injectedMainItems])
 
   const activeMenuHref = useMemo(

@@ -18,7 +18,7 @@ const widget: InjectionMenuItemWidget = {
     {
       id: 'warranty-claims-list',
       label: 'Moje zgłoszenia',
-      icon: 'lucide:clipboard-list',
+      icon: 'lucide:files',
       href: '/portal/warranty-claims',
       groupId: 'warranty-claims',
       groupLabel: 'Moje zgłoszenia',
