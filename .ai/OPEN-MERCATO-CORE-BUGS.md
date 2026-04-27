@@ -411,6 +411,49 @@ Rekomendacja do upstream:
 - albo ukrywac sidebar do czasu `isChromeReady`,
 - albo pokazac stan loading zamiast renderowac pierwszy, nietrafiony stan menu.
 
+## Bug 010: catch-all portalu nie weryfikuje czy `orgSlug` z URL nalezy do organizacji zalogowanego klienta
+
+Status:
+- otwarte
+- lokalny workaround wdrozony w `src/app/(frontend)/[...slug]/page.tsx`
+- bez zmian w core
+
+Obszar:
+- `@open-mercato/core`
+- `src/app/(frontend)/[...slug]/page.tsx`
+- customer portal auth gate
+- izolacja miedzy organizacjami
+
+Jak odtworzyc:
+1. Zaloguj sie do portalu organizacji A (np. `/acme-corp/portal/login`).
+2. W przegladarce wejdz recznie na URL innej organizacji (np. `/other-org/portal/warranty-claims`).
+3. Strona sie laduje bez bledu i bez przekierowania do logowania.
+4. Zalogowany uzytkownik A widzi tresc (lub bledy API) portalu organizacji B.
+
+Przyczyna:
+- catch-all w `page.tsx` sprawdza tylko czy `customer_auth_token` istnieje i jest wazny,
+- nie porownuje `orgId` z tokena z `slug` organizacji z URL,
+- token moze nalezyc do zupelnie innej organizacji niz ta w URL i auth gate przepusci request.
+
+Aktualne zachowanie:
+- kazdy wazny `customer_auth_token` daje dostep do dowolnego `/<jakikolwiek-slug>/portal/*`,
+- brak izolacji miedzy organizacjami na poziomie serwerowym catch-alla.
+
+Oczekiwane zachowanie:
+- po weryfikacji tokena catch-all powinien sprawdzic czy `orgId` z tokena odpowiada organizacji o slugu z URL,
+- jesli slug nie pasuje — redirect do `/<orgSlug>/portal/login`,
+- uzytkownik nie moze wejsc na portal innej organizacji niz ta, do ktorej jest przypisany.
+
+Co dzis zrobiono lokalnie:
+- w `src/app/(frontend)/[...slug]/page.tsx` dodano zapytanie do bazy po `Organization` z `orgId` z tokena,
+- porownanie `org.slug !== orgSlug` z URL — niezgodnosc daje redirect do logowania,
+- workaround dziala poprawnie, ale powinien byc czescia core catch-alla.
+
+Rekomendacja do upstream:
+- rozszerzyc `requireCustomerAuth` gate w catch-all o weryfikacje `orgSlug` vs `org.slug` z bazy,
+- albo dodac `orgSlug` do payloadu JWT i porownywac bez dodatkowego zapytania do bazy,
+- upewnic sie ze wszystkie przyszle portale dziedzicza te izolacje bez koniecznosci lokalnych poprawek.
+
 ## Bug 009: `mercato init` pada gdy modul `feature_toggles` lub `dashboards` jest wylaczony w `src/modules.ts`
 
 Status:

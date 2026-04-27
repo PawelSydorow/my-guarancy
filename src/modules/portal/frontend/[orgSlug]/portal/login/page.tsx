@@ -117,7 +117,7 @@ export default function PortalLoginPage({ params }: Props) {
                 type="email"
                 autoComplete="email"
                 required
-                placeholder={t('portal.login.email.placeholder', 'you@example.com')}
+                placeholder={t('portal.login.email.placeholder', 'Wpisz adres e-mail')}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 disabled={submitting}
@@ -131,7 +131,7 @@ export default function PortalLoginPage({ params }: Props) {
                 type="password"
                 autoComplete="current-password"
                 required
-                placeholder={t('portal.login.password.placeholder', 'Password')}
+                placeholder={t('portal.login.password.placeholder', 'Wpisz haslo')}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 disabled={submitting}

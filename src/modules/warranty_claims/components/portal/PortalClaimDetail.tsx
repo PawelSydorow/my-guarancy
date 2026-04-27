@@ -8,8 +8,8 @@ import { Notice } from '@open-mercato/ui/primitives/Notice'
 import { EnumBadge } from '@open-mercato/ui/backend/ValueIcons'
 import { PortalCard, PortalCardDivider, PortalCardHeader, PortalStatRow } from '@open-mercato/ui/portal/components/PortalCard'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
-import { XCircle } from 'lucide-react'
-import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_BADGE_MAP } from '../../lib/statusStyles'
+import { ArrowLeft, XCircle } from 'lucide-react'
+import { WARRANTY_STATUS_BADGE_MAP } from '../../lib/statusStyles'
 import { WARRANTY_STATUS_KEYS } from '../../lib/constants'
 import type { PortalClaimRecord, PortalLookupBundle } from '../../lib/portal'
 
@@ -19,9 +19,9 @@ type Props = {
 }
 
 function formatDate(value: string | null | undefined, withTime = false) {
-  if (!value) return '-'
+  if (!value) return '—'
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '-'
+  if (Number.isNaN(date.getTime())) return '—'
   return new Intl.DateTimeFormat('pl-PL', {
     year: 'numeric',
     month: '2-digit',
@@ -30,14 +30,24 @@ function formatDate(value: string | null | undefined, withTime = false) {
   }).format(date)
 }
 
+function FieldBlock({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">{label}</p>
+      <div className="text-sm text-foreground">{children}</div>
+    </div>
+  )
+}
+
 export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
   const searchParams = useSearchParams()
+
   const claimQuery = useQuery<PortalClaimRecord>({
     queryKey: ['portal-warranty-claim', orgSlug, claimId],
     queryFn: async () => {
       const response = await fetch(`/api/warranty_claims/portal/claims/${claimId}`, { credentials: 'include' })
-      if (response.status === 404) throw new Error('Nie znaleziono wskazanego zgloszenia.')
-      if (!response.ok) throw new Error('Nie udalo sie pobrac szczegolow zgloszenia.')
+      if (response.status === 404) throw new Error('Nie znaleziono wskazanego zgłoszenia.')
+      if (!response.ok) throw new Error('Nie udało się pobrać szczegółów zgłoszenia.')
       return await response.json()
     },
   })
@@ -46,15 +56,15 @@ export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
     queryKey: ['portal-warranty-claim-detail-lookups', orgSlug],
     queryFn: async () => {
       const response = await fetch('/api/warranty_claims/portal/lookups', { credentials: 'include' })
-      if (!response.ok) throw new Error('Nie udalo sie zaladowac slownikow.')
+      if (!response.ok) throw new Error('Nie udało się załadować słowników.')
       return await response.json()
     },
   })
 
   if (claimQuery.isLoading) {
     return (
-      <PortalCard className="rounded-none border-dashed text-sm text-muted-foreground">
-        Ladowanie szczegolow zgloszenia...
+      <PortalCard className="border-dashed text-sm text-muted-foreground">
+        Ładowanie szczegółów zgłoszenia…
       </PortalCard>
     )
   }
@@ -62,7 +72,7 @@ export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
   if (claimQuery.isError || !claimQuery.data) {
     return (
       <Notice variant="error">
-        {claimQuery.error instanceof Error ? claimQuery.error.message : 'Nie udalo sie pobrac szczegolow zgloszenia.'}
+        {claimQuery.error instanceof Error ? claimQuery.error.message : 'Nie udało się pobrać szczegółów zgłoszenia.'}
       </Notice>
     )
   }
@@ -73,62 +83,82 @@ export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
   const priorityLabel = lookups?.priorities.find((item) => item.id === claim.priorityKey)?.label ?? claim.priorityKey
   const lookupsLoading = lookupsQuery.isLoading && !lookupsQuery.data
   const showAttachmentWarning = searchParams.get('attachments') === 'partial'
+  const isRejected = claim.statusKey === WARRANTY_STATUS_KEYS.rejected
 
   return (
     <div className="space-y-6">
       {showAttachmentWarning ? (
         <Notice variant="error">
-          Zgloszenie zostalo zapisane, ale zalaczniki nie zostaly przypiete.
+          Zgłoszenie zostało zapisane, ale załączniki nie zostały przypięte.
         </Notice>
       ) : null}
+
       <PortalPageHeader
         label="Portal klienta"
         title={claim.title}
-        description={`Zgloszenie ${claim.claimNumberFormatted}`}
+        description={`Zgłoszenie ${claim.claimNumberFormatted}`}
         action={(
-          <Button asChild variant="outline" className="rounded-none">
-            <Link href={`/${orgSlug}/portal/warranty-claims`}>Powrot do listy</Link>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/${orgSlug}/portal/warranty-claims`}>
+              <ArrowLeft className="mr-1.5 size-3.5" />
+              Powrót do listy
+            </Link>
           </Button>
         )}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <PortalCard className="rounded-none border-border/70">
-          <PortalCardHeader
-            label="Opis"
-            title="Szczegoly problemu"
-            description="Pola widoczne dla klienta w portalu."
-          />
+      {/* Status bar */}
+      <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-5 py-3.5">
+        <EnumBadge value={claim.statusKey} map={WARRANTY_STATUS_BADGE_MAP} fallback={claim.statusKey} />
+        <span className="text-sm text-muted-foreground">
+          {claim.resolvedAt
+            ? `Zakończone ${formatDate(claim.resolvedAt)}`
+            : 'Zgłoszenie jest w trakcie obsługi'}
+        </span>
+      </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Opis usterki</p>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{claim.issueDescription}</p>
-            </div>
+      {isRejected && claim.rejectionReason ? (
+        <div className="flex gap-3 rounded-xl border border-status-error-border bg-status-error-bg p-5 text-status-error-text">
+          <XCircle className="mt-0.5 size-4 shrink-0" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">Zgłoszenie odrzucone</p>
+            <p className="text-sm opacity-90">Powód: {claim.rejectionReason}</p>
+          </div>
+        </div>
+      ) : null}
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Lokalizacja</p>
-                <p className="text-sm text-foreground">{claim.locationText || '-'}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Projekt</p>
-                <p className="text-sm text-foreground">{lookupsLoading ? 'Ladowanie...' : projectLabel}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Utworzono</p>
-                <p className="text-sm text-foreground">{formatDate(claim.createdAt, true)}</p>
-              </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.9fr)]">
+        {/* Main */}
+        <PortalCard>
+          <PortalCardHeader label="Opis" title="Szczegóły problemu" />
+
+          <div className="space-y-5">
+            <FieldBlock label="Opis usterki">
+              <p className="whitespace-pre-wrap leading-6">{claim.issueDescription}</p>
+            </FieldBlock>
+
+            <div className="h-px bg-border/60" />
+
+            <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+              <FieldBlock label="Lokalizacja">
+                <span className="font-medium">{claim.locationText || '—'}</span>
+              </FieldBlock>
+              <FieldBlock label="Projekt">
+                <span className="font-medium">{lookupsLoading ? 'Ładowanie…' : projectLabel}</span>
+              </FieldBlock>
+              <FieldBlock label="Priorytet">
+                <span className="font-medium">{lookupsLoading ? 'Ładowanie…' : priorityLabel}</span>
+              </FieldBlock>
+              <FieldBlock label="Data zgłoszenia">
+                <span className="font-medium">{formatDate(claim.reportedAt)}</span>
+              </FieldBlock>
             </div>
           </div>
         </PortalCard>
 
-        <PortalCard className="rounded-none border-border/70">
-          <PortalCardHeader
-            label="Status"
-            title="Metadane zgloszenia"
-            description="Najwazniejsze informacje o obsludze zgloszenia."
-          />
+        {/* Sidebar */}
+        <PortalCard>
+          <PortalCardHeader label="Status" title="Metadane zgłoszenia" />
 
           <PortalStatRow
             label="Numer"
@@ -142,31 +172,17 @@ export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
           <PortalCardDivider />
           <PortalStatRow
             label="Priorytet"
-            value={(
-              <span className={[
-                'inline-flex min-h-8 items-center rounded-none border px-2.5 py-1 text-xs font-medium',
-                WARRANTY_PRIORITY_SEGMENT_CLASSES[claim.priorityKey] ?? 'border-border bg-muted text-foreground',
-              ].join(' ')}>
-                {lookupsLoading ? 'Ladowanie...' : priorityLabel}
-              </span>
-            )}
+            value={<span className="font-medium">{lookupsLoading ? 'Ładowanie…' : priorityLabel}</span>}
           />
           <PortalCardDivider />
-          <PortalStatRow label="Data zgloszenia" value={formatDate(claim.reportedAt, true)} />
+          <PortalStatRow label="Data zgłoszenia" value={formatDate(claim.reportedAt)} />
           <PortalCardDivider />
-          <PortalStatRow label="Data rozwiazania" value={formatDate(claim.resolvedAt, true)} />
+          <PortalStatRow label="Data rozwiązania" value={formatDate(claim.resolvedAt, true)} />
+          <PortalCardDivider />
+          <PortalStatRow label="Projekt" value={lookupsLoading ? '…' : projectLabel} />
+
         </PortalCard>
       </div>
-
-      {claim.statusKey === WARRANTY_STATUS_KEYS.rejected && claim.rejectionReason ? (
-        <div className="flex gap-3 rounded-none border border-status-error-border bg-status-error-bg p-4 text-status-error-text">
-          <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="space-y-1">
-            <p className="text-sm font-semibold">Zgłoszenie odrzucone</p>
-            <p className="text-sm">Powód: {claim.rejectionReason}</p>
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }

@@ -84,6 +84,10 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
     return Math.max(1, Math.ceil(total / DEFAULT_LIMIT))
   }, [claimsQuery.data?.total])
 
+  const categoryMap = React.useMemo(() => {
+    return new Map((lookupsQuery.data?.categories ?? []).map((item) => [item.id, item.label]))
+  }, [lookupsQuery.data?.categories])
+
   const priorityLabels = React.useMemo(() => {
     return new Map((lookupsQuery.data?.priorities ?? []).map((item) => [item.id, item.label]))
   }, [lookupsQuery.data?.priorities])
@@ -126,9 +130,19 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
     },
     { accessorKey: 'title', header: 'Tytul', meta: { priority: 1, maxWidth: '420px' } },
     {
+      accessorKey: 'categoryKey',
+      header: 'Kategoria',
+      meta: { priority: 1, maxWidth: '160px' },
+      cell: ({ row }) => (
+        <span className="inline-flex min-h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+          {categoryMap.get(row.original.categoryKey) ?? row.original.categoryKey ?? '—'}
+        </span>
+      ),
+    },
+    {
       accessorKey: 'statusKey',
       header: 'Status',
-      meta: { priority: 1 },
+      meta: { priority: 1, maxWidth: '200px' },
       cell: ({ row }) => (
         <EnumBadge value={row.original.statusKey} map={WARRANTY_STATUS_BADGE_MAP} fallback={row.original.statusKey} />
       ),
@@ -150,7 +164,7 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
     },
     { accessorKey: 'reportedAt', header: 'Data zgloszenia', meta: { priority: 1 }, cell: ({ row }) => formatDate(row.original.reportedAt) },
     { accessorKey: 'resolvedAt', header: 'Data rozwiazania', meta: { priority: 2 }, cell: ({ row }) => formatDate(row.original.resolvedAt) },
-  ], [orgSlug, priorityLabels])
+  ], [orgSlug, categoryMap, priorityLabels])
 
   const handleSortingChange = (next: SortingState) => {
     setSorting(next)
@@ -189,7 +203,7 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
           setSearchInput(value)
           setPage(1)
         }}
-        searchAlign="right"
+        searchAlign="left"
         filters={filtersDef}
         filterValues={filters}
         onFiltersApply={handleFiltersApply}
