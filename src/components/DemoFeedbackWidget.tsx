@@ -68,32 +68,32 @@ export function DemoFeedbackWidget({ demoModeEnabled }: { demoModeEnabled: boole
     return () => clearInterval(interval)
   }, [])
 
-  // Auto-popup after 30s inactivity (once per day, unless suppressed)
-  useEffect(() => {
-    if (!demoModeEnabled || !mounted) return
-    if (getCookie(SUPPRESS_COOKIE) === '1') return
-    if (getCookie(SHOWN_TODAY_COOKIE) === todayKey()) return
-
-    function resetTimer() {
-      if (inactivityTimer.current) clearTimeout(inactivityTimer.current)
-      inactivityTimer.current = setTimeout(() => {
-        if (!autoShownRef.current) {
-          autoShownRef.current = true
-          setCookie(SHOWN_TODAY_COOKIE, todayKey(), 1)
-          setOpen(true)
-        }
-      }, 30_000)
-    }
-
-    const events = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'] as const
-    events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }))
-    resetTimer()
-
-    return () => {
-      events.forEach((ev) => window.removeEventListener(ev, resetTimer))
-      if (inactivityTimer.current) clearTimeout(inactivityTimer.current)
-    }
-  }, [demoModeEnabled, mounted])
+  // Auto-popup disabled
+  // useEffect(() => {
+  //   if (!demoModeEnabled || !mounted) return
+  //   if (getCookie(SUPPRESS_COOKIE) === '1') return
+  //   if (getCookie(SHOWN_TODAY_COOKIE) === todayKey()) return
+  //
+  //   function resetTimer() {
+  //     if (inactivityTimer.current) clearTimeout(inactivityTimer.current)
+  //     inactivityTimer.current = setTimeout(() => {
+  //       if (!autoShownRef.current) {
+  //         autoShownRef.current = true
+  //         setCookie(SHOWN_TODAY_COOKIE, todayKey(), 1)
+  //         setOpen(true)
+  //       }
+  //     }, 30_000)
+  //   }
+  //
+  //   const events = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'] as const
+  //   events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }))
+  //   resetTimer()
+  //
+  //   return () => {
+  //     events.forEach((ev) => window.removeEventListener(ev, resetTimer))
+  //     if (inactivityTimer.current) clearTimeout(inactivityTimer.current)
+  //   }
+  // }, [demoModeEnabled, mounted])
 
   const handleSubmit = useCallback(async () => {
     setFieldErrors({})
@@ -195,7 +195,7 @@ export function DemoFeedbackWidget({ demoModeEnabled }: { demoModeEnabled: boole
 
   return (
     <>
-      {createPortal(floatingButton, document.body)}
+      {/* {createPortal(floatingButton, document.body)} */}
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md" onKeyDown={handleKeyDown}>
           <DialogHeader className="items-center gap-3">

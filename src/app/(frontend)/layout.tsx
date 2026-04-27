@@ -1,4 +1,5 @@
 import { headers } from 'next/headers'
+import { notFound } from 'next/navigation'
 import { getCustomerAuthFromCookies } from '@open-mercato/core/modules/customer_accounts/lib/customerAuthServer'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import { Organization } from '@open-mercato/core/modules/directory/data/entities'
@@ -12,7 +13,7 @@ type LayoutProps = {
   children: React.ReactNode
 }
 
-const PUBLIC_SUFFIXES = ['/portal/login', '/portal/signup']
+const PUBLIC_SUFFIXES = ['/portal/login']
 
 function isPublicPortalRoute(pathname: string): boolean {
   if (/^\/[^/]+\/portal\/?$/.test(pathname)) return true
@@ -29,6 +30,10 @@ export default async function FrontendLayout({ children }: LayoutProps) {
   const portalMatch = pathname.match(/^\/([^/]+)\/portal(?:\/|$)/)
   if (!portalMatch) {
     return <>{children}</>
+  }
+
+  if (pathname.endsWith('/portal/signup')) {
+    notFound()
   }
 
   const orgSlug = portalMatch[1]

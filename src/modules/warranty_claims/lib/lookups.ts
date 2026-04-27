@@ -1,7 +1,7 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { Dictionary, DictionaryEntry } from '@open-mercato/core/modules/dictionaries/data/entities'
 import { User } from '@open-mercato/core/modules/auth/data/entities'
-import { WARRANTY_DICTIONARY_KEYS, WARRANTY_PRIORITY_ORDER } from './constants'
+import { WARRANTY_DICTIONARY_KEYS, WARRANTY_PRIORITY_ORDER, WARRANTY_STATUS_ORDER } from './constants'
 import { Project, ProjectSubcontractor, WarrantyClaim } from '../data/entities'
 import type { LookupOption, LookupBundle } from '../types'
 
@@ -39,6 +39,16 @@ export async function getDictionaryOptions(
 
   if (dictionaryKey === WARRANTY_DICTIONARY_KEYS.priority) {
     const order = new Map<string, number>(WARRANTY_PRIORITY_ORDER.map((value, index) => [value, index]))
+    return mapped.slice().sort((a, b) => {
+      const left = order.get(a.id) ?? Number.POSITIVE_INFINITY
+      const right = order.get(b.id) ?? Number.POSITIVE_INFINITY
+      if (left !== right) return left - right
+      return a.label.localeCompare(b.label, 'pl')
+    })
+  }
+
+  if (dictionaryKey === WARRANTY_DICTIONARY_KEYS.status) {
+    const order = new Map<string, number>(WARRANTY_STATUS_ORDER.map((value, index) => [value, index]))
     return mapped.slice().sort((a, b) => {
       const left = order.get(a.id) ?? Number.POSITIVE_INFINITY
       const right = order.get(b.id) ?? Number.POSITIVE_INFINITY

@@ -15,6 +15,7 @@ import {
   WARRANTY_CLAIM_ENTITY_ID,
   WARRANTY_DEFAULT_CREATE_PRIORITY_KEY,
   WARRANTY_DEFAULT_CREATE_STATUS_KEY,
+  WARRANTY_STATUS_KEYS,
 } from '../lib/constants'
 import { ATTACHMENTS_LIBRARY_ENTITY_ID, createDraftAttachmentRecordId, transferDraftAttachments } from '../lib/attachments'
 import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_SEGMENT_CLASSES } from '../lib/statusStyles'
@@ -34,6 +35,7 @@ type FormValues = {
   reported_at: string
   assigned_user_id?: string | null
   resolved_at?: string | null
+  rejection_reason?: string | null
   subcontractor_id?: string | null
 }
 
@@ -226,6 +228,73 @@ function HiddenInitialFocusTarget() {
   )
 }
 
+function RejectionReasonModal({
+  open,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean
+  onConfirm: (reason: string) => void
+  onCancel: () => void
+}) {
+  const [reason, setReason] = React.useState('')
+  const [touched, setTouched] = React.useState(false)
+
+  React.useEffect(() => {
+    if (open) {
+      setReason('')
+      setTouched(false)
+    }
+  }, [open])
+
+  if (!open) return null
+
+  const error = touched && !reason.trim() ? 'Podaj powód odrzucenia' : undefined
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-md rounded-lg border bg-card p-6 shadow-lg">
+        <h2 className="text-lg font-semibold tracking-tight">Odrzucenie zgłoszenia</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Podaj powód odrzucenia zgłoszenia. Będzie on widoczny dla klienta w portalu.</p>
+        <div className="mt-4 space-y-1.5">
+          <label className="text-sm font-medium text-foreground">
+            Powód odrzucenia <span className="text-destructive">*</span>
+          </label>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            onBlur={() => setTouched(true)}
+            rows={4}
+            placeholder="Wpisz powód odrzucenia..."
+            className={`w-full rounded-none border px-3 py-2 text-sm outline-none transition-[color,box-shadow,border-color] focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/50 resize-y ${error ? 'border-destructive' : 'border-input'} bg-background`}
+          />
+          {error ? <div className="text-xs text-destructive">{error}</div> : null}
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex min-h-9 items-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Anuluj
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTouched(true)
+              if (!reason.trim()) return
+              onConfirm(reason.trim())
+            }}
+            className="inline-flex min-h-9 items-center rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90"
+          >
+            Odrzuć zgłoszenie
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 
 async function fetchLookupItems(endpoint: string, query = '', extraParams?: Record<string, string | null | undefined>) {
   const params = new URLSearchParams()
@@ -255,6 +324,8 @@ export default function WarrantyClaimForm({
   const [claimRecord, setClaimRecord] = React.useState<WarrantyClaimRecord | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
+  const [rejectionModalOpen, setRejectionModalOpen] = React.useState(false)
+  const pendingStatusSetterRef = React.useRef<((value: string) => void) | null>(null)
 
   React.useEffect(() => {
     let cancelled = false
@@ -316,6 +387,7 @@ export default function WarrantyClaimForm({
           reported_at: formatDateForInput(claim.reported_at),
           assigned_user_id: claim.assigned_user_id,
           resolved_at: formatDateForInput(claim.resolved_at),
+          rejection_reason: claim.rejection_reason ?? null,
           subcontractor_id: claim.subcontractor_id,
         })
       } catch (nextError) {
@@ -392,6 +464,8 @@ export default function WarrantyClaimForm({
         const priorityOptions = lookups?.priorities ?? []
         const userOptions = lookups?.users ?? []
 
+        const rejectionReason = typeof values.rejection_reason === 'string' ? values.rejection_reason : ''
+
         const onProjectChange = (nextValue: string) => {
           setValue('project_id', nextValue || undefined)
           setValue('subcontractor_id', undefined)
@@ -400,47 +474,73 @@ export default function WarrantyClaimForm({
           })
         }
 
+        const onStatusChange = (nextValue: string | undefined) => {
+          if (nextValue === WARRANTY_STATUS_KEYS.rejected) {
+            pendingStatusSetterRef.current = (confirmedValue: string) => {
+              setValue('status_key', nextValue)
+              setValue('rejection_reason', confirmedValue)
+            }
+            setRejectionModalOpen(true)
+          } else {
+            setValue('status_key', nextValue)
+            setValue('rejection_reason', null)
+          }
+        }
+
         return (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
             <FormCard title="Dane podstawowe" className="h-full">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-4">
-                  <FieldFrame label="Projekt" required error={errors.project_id}>
-                    <ClearableComboboxInput
-                      value={projectId}
-                      suggestions={toComboboxOptions(projectOptions)}
-                      placeholder="Wybierz projekt"
-                      disabled={mode === 'edit'}
-                      allowCustomValues={false}
-                      resolveLabel={(nextValue) => projectOptions.find((item) => item.id === nextValue)?.label ?? nextValue}
-                      resolveDescription={(nextValue) => projectOptions.find((item) => item.id === nextValue)?.description ?? null}
-                      onChange={onProjectChange}
-                    />
-                  </FieldFrame>
-                  <FieldFrame label="Kategoria" required error={errors.category_key}>
-                    <select value={categoryKey} className={FIELD_INPUT_CLASS} onChange={(event) => setValue('category_key', event.target.value || undefined)}>
-                      <option value="">Wybierz kategorię</option>
-                      {categoryOptions.map((option) => (
-                        <option key={option.id} value={option.id}>{option.label}</option>
-                      ))}
-                    </select>
-                  </FieldFrame>
+                <FieldFrame label="Projekt" required error={errors.project_id}>
+                  <ClearableComboboxInput
+                    value={projectId}
+                    suggestions={toComboboxOptions(projectOptions)}
+                    placeholder="Wybierz projekt"
+                    disabled={mode === 'edit'}
+                    allowCustomValues={false}
+                    resolveLabel={(nextValue) => projectOptions.find((item) => item.id === nextValue)?.label ?? nextValue}
+                    resolveDescription={(nextValue) => projectOptions.find((item) => item.id === nextValue)?.description ?? null}
+                    onChange={onProjectChange}
+                  />
+                </FieldFrame>
+                <FieldFrame label="Numer zgłoszenia" error={errors.claim_number}>
+                  <input type="text" readOnly aria-readonly="true" value={claimNumber.trim() ? claimNumber : 'Nadany automatycznie po zapisie'} className="w-full rounded-none border border-input bg-muted px-3 py-2 text-sm font-medium text-foreground" />
+                </FieldFrame>
+                <FieldFrame label="Kategoria" required error={errors.category_key}>
+                  <select value={categoryKey} className={FIELD_INPUT_CLASS} onChange={(event) => setValue('category_key', event.target.value || undefined)}>
+                    <option value="">Wybierz kategorię</option>
+                    {categoryOptions.map((option) => (
+                      <option key={option.id} value={option.id}>{option.label}</option>
+                    ))}
+                  </select>
+                </FieldFrame>
+                <FieldFrame label="Numer BAS" required error={errors.bas_number}>
+                  <input type="text" value={basNumber} onChange={(event) => setValue('bas_number', event.target.value)} placeholder="Wpisz numer BAS" className={FIELD_INPUT_CLASS} />
+                </FieldFrame>
+                <div className="sm:col-span-2">
                   <FieldFrame label="Status" required error={errors.status_key}>
                     <SegmentedSelectField
                       value={statusKey}
                       options={statusOptions.map((item) => ({ value: item.id, label: item.label }))}
-                      onChange={(nextValue) => setValue('status_key', nextValue)}
+                      onChange={onStatusChange}
                       colorMap={WARRANTY_STATUS_SEGMENT_CLASSES}
                     />
                   </FieldFrame>
                 </div>
-                <div className="space-y-4">
-                  <FieldFrame label="Numer zgłoszenia" error={errors.claim_number}>
-                    <input type="text" readOnly aria-readonly="true" value={claimNumber.trim() ? claimNumber : 'Nadany automatycznie po zapisie'} className="w-full rounded-none border border-input bg-muted px-3 py-2 text-sm font-medium text-foreground" />
-                  </FieldFrame>
-                  <FieldFrame label="Numer BAS" required error={errors.bas_number}>
-                    <input type="text" value={basNumber} onChange={(event) => setValue('bas_number', event.target.value)} placeholder="Wpisz numer BAS" className={FIELD_INPUT_CLASS} />
-                  </FieldFrame>
+                {statusKey === WARRANTY_STATUS_KEYS.rejected ? (
+                  <div className="sm:col-span-2">
+                    <FieldFrame label="Powód odrzucenia" required error={errors.rejection_reason}>
+                      <textarea
+                        value={rejectionReason}
+                        onChange={(e) => setValue('rejection_reason', e.target.value)}
+                        rows={3}
+                        placeholder="Wpisz powód odrzucenia..."
+                        className={`${FIELD_INPUT_CLASS} resize-y`}
+                      />
+                    </FieldFrame>
+                  </div>
+                ) : null}
+                <div className="sm:col-span-2">
                   <FieldFrame label="Pilność" required error={errors.priority_key}>
                     <SegmentedSelectField
                       value={priorityKey}
@@ -589,6 +689,7 @@ export default function WarrantyClaimForm({
       assigned_user_id: values.assigned_user_id || null,
       subcontractor_id: values.subcontractor_id || null,
       resolved_at: values.resolved_at || null,
+      rejection_reason: values.rejection_reason || null,
     }
     if (mode === 'create') {
       const created = await createCrud<WarrantyClaimApiRecord>('warranty_claims/claims', payload)
@@ -612,6 +713,18 @@ export default function WarrantyClaimForm({
 
   return (
     <Page>
+      <RejectionReasonModal
+        open={rejectionModalOpen}
+        onConfirm={(reason) => {
+          pendingStatusSetterRef.current?.(reason)
+          pendingStatusSetterRef.current = null
+          setRejectionModalOpen(false)
+        }}
+        onCancel={() => {
+          pendingStatusSetterRef.current = null
+          setRejectionModalOpen(false)
+        }}
+      />
       <PageBody>
         <CrudForm<FormValues>
           title={mode === 'create' ? 'Nowe zgloszenie gwarancyjne' : 'Edycja zgloszenia gwarancyjnego'}

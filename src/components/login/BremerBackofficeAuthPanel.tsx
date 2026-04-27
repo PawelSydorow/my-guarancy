@@ -1,5 +1,7 @@
-import type { ReactNode } from 'react'
-import BremerLoginHero from './BremerLoginHero'
+'use client'
+
+import { useEffect, type ReactNode } from 'react'
+import BremerBackofficeLoginHero from './BremerBackofficeLoginHero'
 
 type Props = {
   title: string
@@ -7,12 +9,18 @@ type Props = {
   children: ReactNode
   footer?: ReactNode
   hero?: ReactNode
+  badge?: string
 }
 
-export default function BremerAuthPanel({ title, description, children, footer, hero }: Props) {
+export default function BremerBackofficeAuthPanel({ title, description, children, footer, hero, badge }: Props) {
+  useEffect(() => {
+    document.body.setAttribute('data-bremer-auth-page', 'backoffice')
+    return () => { document.body.removeAttribute('data-bremer-auth-page') }
+  }, [])
+
   return (
     <>
-      {hero ?? <BremerLoginHero />}
+      {hero ?? <BremerBackofficeLoginHero />}
       <div className="w-full max-w-md px-6 lg:px-0">
         <div className="flex flex-col gap-10">
           <header className="flex flex-col gap-8">
@@ -22,7 +30,7 @@ export default function BremerAuthPanel({ title, description, children, footer, 
               </span>
               <div className="mx-3 h-6 w-px bg-border/30" aria-hidden="true" />
               <span className="text-xs font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                POLSKA
+                {badge ?? 'POLSKA'}
               </span>
             </div>
             <div className="space-y-3">

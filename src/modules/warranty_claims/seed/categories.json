@@ -3,5 +3,10 @@
   { "value": "instalacja_wodna", "label": "Instalacja wodna" },
   { "value": "instalacja_elektryczna", "label": "Instalacja elektryczna" },
   { "value": "czesci_wspolne", "label": "Czesci wspolne" },
-  { "value": "zagospodarowanie_terenu", "label": "Zagospodarowanie terenu" }
+  { "value": "zagospodarowanie_terenu", "label": "Zagospodarowanie terenu" },
+  { "value": "stolarka_okienna", "label": "Stolarka okienna" },
+  { "value": "stolarka_drzwiowa", "label": "Stolarka drzwiowa" },
+  { "value": "dach_i_rynny", "label": "Dach i rynny" },
+  { "value": "wentylacja_i_ogrzewanie", "label": "Wentylacja i ogrzewanie" },
+  { "value": "tynki_i_malowanie", "label": "Tynki i malowanie" }
 ]

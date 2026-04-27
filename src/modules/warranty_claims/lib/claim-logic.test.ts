@@ -155,11 +155,11 @@ describe('prepareClaimInput', () => {
   })
 
   describe('resolved_at logic', () => {
-    it('autofills resolved_at on first transition to zakonczone', async () => {
+    it('autofills resolved_at on first transition to usunięta', async () => {
       const em = createEntityManagerMock({ userExists: true })
-      const result = await prepareClaimInput(em, SCOPE, { ...baseInput, status_key: 'zakonczone' })
+      const result = await prepareClaimInput(em, SCOPE, { ...baseInput, status_key: 'usunięta' })
 
-      expect(result.status_key).toBe('zakonczone')
+      expect(result.status_key).toBe('usunięta')
       expect(result.resolved_at).toBeTruthy()
     })
 
@@ -167,7 +167,7 @@ describe('prepareClaimInput', () => {
       const em = createEntityManagerMock({ userExists: true })
       const result = await prepareClaimInput(
         em, SCOPE,
-        { ...baseInput, status_key: 'zakonczone', resolved_at: '2026-04-21T15:30:00.000Z' },
+        { ...baseInput, status_key: 'usunięta', resolved_at: '2026-04-21T15:30:00.000Z' },
       )
 
       expect(result.resolved_at).toBe('2026-04-21T15:30:00.000Z')
@@ -185,14 +185,14 @@ describe('prepareClaimInput', () => {
 
       const result = await prepareClaimInput(
         em, SCOPE,
-        { ...baseInput, id: 'claim-1', status_key: 'zakonczone', resolved_at: null },
+        { ...baseInput, id: 'claim-1', status_key: 'usunięta', resolved_at: null },
         existing,
       )
 
       expect(result.resolved_at).toBe(existingResolvedAt.toISOString())
     })
 
-    it('does not overwrite resolved_at on repeated transitions to zakonczone', async () => {
+    it('does not overwrite resolved_at on repeated transitions to usunięta', async () => {
       const em = createEntityManagerMock({ userExists: true })
       const originalDate = '2026-04-10T08:00:00.000Z'
       const existing = {
@@ -204,16 +204,16 @@ describe('prepareClaimInput', () => {
 
       const result = await prepareClaimInput(
         em, SCOPE,
-        { ...baseInput, id: 'claim-1', status_key: 'zakonczone', resolved_at: null },
+        { ...baseInput, id: 'claim-1', status_key: 'usunięta', resolved_at: null },
         existing,
       )
 
       expect(result.resolved_at).toBe(originalDate)
     })
 
-    it('does not autofill resolved_at for non-zakonczone status', async () => {
+    it('does not autofill resolved_at for non-usunięta status', async () => {
       const em = createEntityManagerMock({ userExists: true })
-      const result = await prepareClaimInput(em, SCOPE, { ...baseInput, status_key: 'w_trakcie' })
+      const result = await prepareClaimInput(em, SCOPE, { ...baseInput, status_key: 'oczekuje' })
 
       expect(result.resolved_at).toBeNull()
     })

@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import { z } from 'zod'
 import type { ComponentOverride } from '@open-mercato/shared/modules/widgets/component-registry'

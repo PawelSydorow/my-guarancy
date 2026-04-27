@@ -275,6 +275,59 @@ Rekomendacja do upstream:
 - albo dodac portalowy odpowiednik `DataTable` bez backendowych zaleznosci typu perspectives, exports i injection handles,
 - udokumentowac portal jako osobny obszar UI, a nie tylko lzejszy backoffice.
 
+## Feature 002: portal login potrzebuje osobnego extension pointu w core auth, zeby core dostarczal formularz, a portal tylko wstrzykiwal wlasny UI
+
+Status:
+- do zgloszenia upstream
+- lokalny portalowy login dziala jako adapter, ale nadal wymaga osobnego entrypointu
+
+Obszar:
+- `@open-mercato/core`
+- `@open-mercato/ui`
+- auth login
+- portal login
+- component replacement / extension points
+
+Opis:
+- obecny login staffowy `/<login>` ma juz stabilny extension point (`section:auth.login.form` oraz `auth.login:form`),
+- portal klienta ma osobny route `/<orgSlug>/portal/login`,
+- portal potrzebuje swojego core'owego entrypointu, ktory zwraca formularz i flow auth, ale pozwala hostowi podmienic chrome, layout i branding,
+- bez takiego hooka portalowy login zaczyna zycie jako lokalny adapter, a nie jako warstwa zasilana z core, co zwieksza koszt utrzymania i ryzyko rozjazdu po aktualizacji.
+
+Po co to jest:
+- zeby core byl single source of truth dla logiki logowania, walidacji, etapow i przyszlych krokow typu 2FA,
+- zeby portal mial wlasny UI shell, ale nie musial reimplementowac formularza ani flow auth,
+- zeby aktualizacje `@open-mercato/core` dla loginu automatycznie przenosily sie na portal,
+- zeby branding, layout i kosmetyka pozostaly po stronie hosta, a nie w forku formularza.
+
+Jakie daje mozliwosci:
+- `/<login>` moze dalej korzystac z core login flow i standardowych override'ow,
+- `/<orgSlug>/portal/login` moze dostac osobny portalowy extension point z tym samym core'owym kontraktem formularza,
+- host aplikacji moze wstrzyknac wlasny UI shell, ale nie musi kopiowac logiki logowania,
+- przyszle zmiany layoutu, stanow bledow, krokow autoryzacji i inputow moga byc wdrazane w core raz i odziedziczone przez portal.
+
+Aktualny przyklad w aplikacji:
+- staff login: [login.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/node_modules/@open-mercato/core/src/modules/auth/frontend/login.tsx)
+- portal login lokalny adapter: [page.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules/portal/frontend/%5BorgSlug%5D/portal/login/page.tsx)
+- wspolny BREMER wrapper: [BremerAuthPanel.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/components/login/BremerAuthPanel.tsx)
+
+Aktualne zachowanie:
+- staffowy login korzysta z core formularza i istniejacego hooka replacement,
+- portalowy login korzysta z lokalnego adaptera i osobnego submitu do `customer_accounts/login`,
+- to dziala funkcjonalnie, ale nie daje pelnej odpornosci na zmiany core loginu,
+- bez dodatkowego portalowego extension pointu portalowe UI i flow moga dryfowac od core.
+
+Oczekiwane zachowanie:
+- core powinien wystawiac osobny, publiczny portalowy extension point dla loginu,
+- portal auth powinien moc podpiac core'owy formularz i flow bez lokalnej kopii,
+- host powinien moc dostarczyc wlasny UI shell i branding bez kopiowania logiki auth,
+- nowy extension point nie powinien psuc istniejacego staffowego loginu.
+
+Rekomendacja do upstream:
+- dodac portalowy handle typu `section:auth.portal.login.form` albo rownowazny `portal.login:form`,
+- pozwolic na oddzielny wrapper/replacement dla portal loginu, ale z tym samym kontraktem propsow co staff login,
+- utrzymac wspolny core'owy kontrakt formularza i flow, a rozdzielic tylko UI shell oraz branding hosta.
+
 ## Bug 006: brak gotowych kontrolek listy w portalu zmusza do recznej implementacji filtrowania i tabel
 
 Status:
@@ -309,3 +362,257 @@ Rekomendacja do upstream:
 - dodac portalowy odpowiednik listy z podstawowym zestawem kontroli,
 - wyciagnac wspolne mechanizmy filtrowania i paginacji do warstwy wspolnej,
 - traktowac portal jako osobny target UI, a nie jako wariant backoffice.
+
+## Bug 007: po zalogowaniu backend sidebar przez chwile pokazuje stare menu zanim pojawi sie docelowy stan
+
+Status:
+- otwarte
+- widoczne jako flicker / problem UX
+- bez lokalnej poprawki w core
+
+Obszar:
+- `@open-mercato/ui`
+- backend shell
+- `AppShell`
+- `BackendChromeProvider`
+- client-side bootstrap menu/widget registry
+
+Jak odtworzyc:
+1. Zaloguj sie do backendu.
+2. Obserwuj sidebar w pierwszych sekundach po zalogowaniu.
+3. Przez chwile widoczne jest starsze albo domyslne menu.
+4. Po doladowaniu chrome, widgetow i stanu klienta sidebar przechodzi w docelowy wyglad.
+
+Aktualny przyklad w aplikacji:
+- backend layout: [layout.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/app/(backend)/backend/layout.tsx)
+- shell UI: [AppShell.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/node_modules/@open-mercato/ui/src/backend/AppShell.tsx)
+- chrome provider: [BackendChromeProvider.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/node_modules/@open-mercato/ui/src/backend/BackendChromeProvider.tsx)
+- client bootstrap: [ClientBootstrap.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/components/ClientBootstrap.tsx)
+
+Aktualne zachowanie:
+- backend layout przekazuje `adminNavApi="/api/auth/admin/nav"` do `AppShell`,
+- `BackendChromeProvider` pobiera chrome po stronie klienta,
+- `AppShell` startuje z poczatkowym stanem sidebaru i dopiero potem synchronizuje `navGroups`,
+- widgety i override'y sa rejestrowane w clientowym bootstrapie,
+- w efekcie widac krotki flash starego lub domyslnego menu po loginie.
+
+Oczekiwane zachowanie:
+- po zalogowaniu powinien od razu byc widoczny finalny stan menu,
+- nie powinno byc przejsciowego renderu starego sidebaru,
+- jesli dane chrome nie sa jeszcze gotowe, shell powinien pokazac loading/skeleton zamiast zmieniac menu po fakcie.
+
+Co dzis zrobiono lokalnie:
+- nic w core nie bylo jeszcze poprawiane,
+- problem zostal opisany jako bug UX / flicker po hydracji,
+- lokalne obejscie nie zostalo wdrozone.
+
+Rekomendacja do upstream:
+- rozwazyc SSR lub wczesniejsze podanie chrome dla backend shell,
+- albo ukrywac sidebar do czasu `isChromeReady`,
+- albo pokazac stan loading zamiast renderowac pierwszy, nietrafiony stan menu.
+
+## Bug 010: catch-all portalu nie weryfikuje czy `orgSlug` z URL nalezy do organizacji zalogowanego klienta
+
+Status:
+- otwarte
+- lokalny workaround wdrozony w `src/app/(frontend)/[...slug]/page.tsx`
+- bez zmian w core
+
+Obszar:
+- `@open-mercato/core`
+- `src/app/(frontend)/[...slug]/page.tsx`
+- customer portal auth gate
+- izolacja miedzy organizacjami
+
+Jak odtworzyc:
+1. Zaloguj sie do portalu organizacji A (np. `/acme-corp/portal/login`).
+2. W przegladarce wejdz recznie na URL innej organizacji (np. `/other-org/portal/warranty-claims`).
+3. Strona sie laduje bez bledu i bez przekierowania do logowania.
+4. Zalogowany uzytkownik A widzi tresc (lub bledy API) portalu organizacji B.
+
+Przyczyna:
+- catch-all w `page.tsx` sprawdza tylko czy `customer_auth_token` istnieje i jest wazny,
+- nie porownuje `orgId` z tokena z `slug` organizacji z URL,
+- token moze nalezyc do zupelnie innej organizacji niz ta w URL i auth gate przepusci request.
+
+Aktualne zachowanie:
+- kazdy wazny `customer_auth_token` daje dostep do dowolnego `/<jakikolwiek-slug>/portal/*`,
+- brak izolacji miedzy organizacjami na poziomie serwerowym catch-alla.
+
+Oczekiwane zachowanie:
+- po weryfikacji tokena catch-all powinien sprawdzic czy `orgId` z tokena odpowiada organizacji o slugu z URL,
+- jesli slug nie pasuje — redirect do `/<orgSlug>/portal/login`,
+- uzytkownik nie moze wejsc na portal innej organizacji niz ta, do ktorej jest przypisany.
+
+Co dzis zrobiono lokalnie:
+- w `src/app/(frontend)/[...slug]/page.tsx` dodano zapytanie do bazy po `Organization` z `orgId` z tokena,
+- porownanie `org.slug !== orgSlug` z URL — niezgodnosc daje redirect do logowania,
+- workaround dziala poprawnie, ale powinien byc czescia core catch-alla.
+
+Rekomendacja do upstream:
+- rozszerzyc `requireCustomerAuth` gate w catch-all o weryfikacje `orgSlug` vs `org.slug` z bazy,
+- albo dodac `orgSlug` do payloadu JWT i porownywac bez dodatkowego zapytania do bazy,
+- upewnic sie ze wszystkie przyszle portale dziedzicza te izolacje bez koniecznosci lokalnych poprawek.
+
+## Bug 009: `mercato init` pada gdy modul `feature_toggles` lub `dashboards` jest wylaczony w `src/modules.ts`
+
+Status:
+- otwarte
+- workaround: wlacz oba moduly tymczasowo na czas inicjalizacji, potem zakomentuj z powrotem
+- bez zmiany w `@open-mercato/cli`
+
+Obszar:
+- `@open-mercato/cli`
+- `mercato init` / `yarn initialize`
+- seed podczas inicjalizacji
+
+Jak odtworzyc:
+1. Zakomentuj `feature_toggles` i/lub `dashboards` w [src/modules.ts](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules.ts).
+2. Uruchom `yarn initialize`.
+3. Init pada z bledem `Module not found: "feature_toggles"` lub `Module not found: "dashboards"`.
+
+Przyczyna (znana lokalizacja w CLI):
+- `mercato.js` linia 632: `runModuleCommand(allModules, "feature_toggles", "seed-defaults", [])` — brak `{ optional: true }`
+- `mercato.js` linia 697: `runModuleCommand(allModules, "dashboards", "enable-analytics-widgets", [...])` — brak `{ optional: true }`
+- Dla porownania `dashboards:seed-defaults` (linia 693) ma juz `{ optional: true }` i przechodzi poprawnie
+
+Aktualne zachowanie:
+- CLI bezwarunkowo probuje wywolac `seed-defaults` dla `feature_toggles` i `enable-analytics-widgets` dla `dashboards`,
+- jesli modul jest wylaczony (wykomentowany w `src/modules.ts`), resolver rzuca `Module not found` i inicjalizacja pada,
+- nie ma sposobu pominiecia tych krokow bez wlaczenia modulow albo patchowania `node_modules`.
+
+Oczekiwane zachowanie:
+- `runModuleCommand` dla `feature_toggles:seed-defaults` i `dashboards:enable-analytics-widgets` powinno miec `{ optional: true }`,
+- init powinien pomijac te kroki ze stosownym logiem jesli modul jest wylaczony,
+- host powinien moc uruchomic `yarn initialize` bez wzgledu na to, ktore opcjonalne moduly ma wlaczone.
+
+Co dzis zrobiono lokalnie:
+- workaround: tymczasowe odkomentowanie `feature_toggles` i `dashboards` w `src/modules.ts` przed init, zakomentowanie po.
+
+Rekomendacja do upstream:
+- dodac `{ optional: true }` do wywolan `runModuleCommand` dla `feature_toggles:seed-defaults` i `dashboards:enable-analytics-widgets`,
+- albo sprawdzac przed wywolaniem, czy modul jest aktywny w rejestrze modulow hosta.
+
+## Bug 008: `server dev` automatycznie startuje scheduler nawet gdy host wyłącza moduł `scheduler`
+
+Status:
+- otwarte
+- lokalny workaround wdrozony w `scripts/dev-runtime.mjs`
+- bez zmiany w `@open-mercato/cli`
+
+Obszar:
+- `@open-mercato/cli`
+- `server dev`
+- `server start`
+- auto-start background services
+
+Jak odtworzyc:
+1. Zakomentuj modul `scheduler` w [src/modules.ts](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules.ts).
+2. Uruchom `yarn dev`.
+3. `server dev` dalej probuje wystartowac workerow i scheduler.
+4. Runtime konczy sie bledem `Module not found: "scheduler"`.
+
+Aktualny przyklad w aplikacji:
+- standalone dev runtime: [dev-runtime.mjs](/c:/Development/Project/MyGuarancy/my-guarancy/scripts/dev-runtime.mjs)
+- host modules: [modules.ts](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules.ts)
+
+Aktualne zachowanie:
+- `server dev` i `server start` w `@open-mercato/cli` automatycznie uruchamiaja `queue:worker --all`,
+- dodatkowo uruchamiaja `scheduler start` przy lokalnej strategii kolejek,
+- host nie ma prostego przełącznika, zeby wylaczyc scheduler tylko dla tego uruchomienia,
+- przy wyłączonym module `scheduler` runtime wywala sie mimo ze sam app shell moglby dzialac dalej.
+
+Oczekiwane zachowanie:
+- host powinien moc wylaczyc auto-start scheduler i workerow bez patchowania CLI,
+- `server dev` nie powinien zakladac, ze modul `scheduler` istnieje,
+- wyłączenie pojedynczego modułu nie powinno zabijac calego runtime, jesli nie jest on krytyczny.
+
+Co dzis zrobiono lokalnie:
+- w [dev-runtime.mjs](/c:/Development/Project/MyGuarancy/my-guarancy/scripts/dev-runtime.mjs) dodano `AUTO_SPAWN_WORKERS=false` i `AUTO_SPAWN_SCHEDULER=false` dla `server dev/start`,
+- dzieki temu standalone app moze wystartowac bez modulu `scheduler`,
+- workaround jest lokalny i nie zmienia zachowania upstream CLI.
+
+Rekomendacja do upstream:
+- dodac oficjalny flag/env do wylaczania auto-spawnowania workerow i schedulera dla `server dev/start`,
+- albo nie uruchamiac schedulera, jesli odpowiadajacy modul nie jest aktywny w `src/modules.ts`,
+- albo traktowac brak `scheduler` jako niekrytyczny warunek w dev runtime zamiast twardego faila.
+
+
+# Core Bug: Warranty claim combobox cannot be cleared
+
+**Status:** open  
+**Area:** `@open-mercato/ui` / warranty claims form  
+**Priority:** medium  
+
+## Problem
+In the warranty claim form, the comboboxes for:
+- assigned user
+- subcontractor
+
+do not behave as clearable fields.
+
+When a user removes the selected value, the control restores the previous value instead of staying empty. In practice this makes reassignment impossible without reloading or working around the UI.
+
+## Expected behavior
+- The selected value can be cleared.
+- Clearing the field should leave the form value empty/null.
+- The combobox should expose a visible clear action when a value is present.
+
+## Impact
+- Blocks reassignment of responsible user and subcontractor on warranty claims.
+- Causes confusing UI behavior because the value appears removed and then reappears.
+
+## Scope
+- Core shared combobox behavior in `@open-mercato/ui` should support clearing selected values.
+- Warranty claim form should use the shared clearable behavior instead of a custom workaround when the shared component is fixed.
+
+## Notes
+- The current workaround is implemented locally in the warranty claims module.
+- This ticket should be used to move the behavior into the shared core UI package and remove the module-specific copy later.
+
+---
+
+# Core Feature: Portal password reset for customers
+
+**Status:** open  
+**Area:** `@open-mercato/core` / customer portal authentication  
+**Priority:** high  
+**Related spec:** SPEC-004 — Portal Klienta: Zgłoszenia Gwarancyjne
+
+## Problem
+The customer portal currently provides login but lacks a password reset flow. When a customer forgets their password, there is no way to recover access to the portal. The backend APIs exist (`POST /api/customer_accounts/password/reset-request` and `POST /api/customer_accounts/password/reset-confirm`), but the frontend UI and routing are not implemented.
+
+## Expected behavior
+- Customer can click "Forgot password?" link on the portal login page: `/<orgSlug>/portal/login`
+- Portal provides password reset pages:
+  - `/<orgSlug>/portal/password-reset` — request password reset email
+  - `/<orgSlug>/portal/password-reset/[token]` — confirm reset with new password
+- Reset pages use the same `BremerAuthPanel` branding as the login page
+- Reset emails are sent to the customer's registered email address
+- Token validation and password update flow completes successfully
+
+## Expected UI flow
+1. Customer on `/<orgSlug>/portal/login` clicks "Forgot your password?" link
+2. Redirected to `/<orgSlug>/portal/password-reset`
+3. Enters email address, receives reset link via email
+4. Clicks link in email (with token) → `/<orgSlug>/portal/password-reset/[token]`
+5. Enters new password, confirms reset
+6. Redirected to login with success message
+7. Can now log in with new password
+
+## Impact
+- Blocks customer self-service password recovery
+- Forces support team to manually reset passwords or provide workarounds
+- Reduces portal usability and increases support burden
+
+## Scope
+- Frontend pages: `src/modules/portal/frontend/[orgSlug]/portal/password-reset/` (request + confirm)
+- Link integration: Update `src/modules/portal/frontend/[orgSlug]/portal/login/page.tsx`
+- Use existing backend APIs from `@open-mercato/core` (no backend work needed)
+- Follow `BremerAuthPanel` branding pattern for consistency with backoffice auth
+
+## Notes
+- Backend password reset APIs are already implemented and tested
+- Reference backoffice password reset for implementation patterns
+- Should integrate with existing email template system in core
+- Token expiry handling should follow core defaults

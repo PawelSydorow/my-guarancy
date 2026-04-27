@@ -193,7 +193,7 @@ export default function WarrantyClaimsTable() {
     {
       accessorKey: 'claim_number',
       header: 'Nr. zgloszenia',
-      meta: { priority: 1, maxWidth: '80px' },
+      meta: { priority: 1, maxWidth: '60px' },
       cell: ({ row }) => row.original.claim_number_formatted,
     },
     {
@@ -206,7 +206,7 @@ export default function WarrantyClaimsTable() {
     {
       accessorKey: 'category_key',
       header: 'Kategoria',
-      meta: { priority: 1 },
+      meta: { priority: 1, maxWidth: '160px' },
       cell: ({ row }) => (
         <span className="inline-flex min-h-8 items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
           {(row.original.category_key ? categoryMap.get(row.original.category_key) : null) ?? row.original.category_key ?? '—'}
@@ -216,7 +216,7 @@ export default function WarrantyClaimsTable() {
     {
       accessorKey: 'status_key',
       header: 'Status',
-      meta: { priority: 1 },
+      meta: { priority: 1, maxWidth: '200px' },
       cell: ({ row }) => (
         <EnumBadge
           value={row.original.status_key}
@@ -240,7 +240,17 @@ export default function WarrantyClaimsTable() {
         </span>
       ),
     },
-    { accessorKey: 'reported_at', header: 'Data zgloszenia', meta: { priority: 1 } },
+    {
+      accessorKey: 'reported_at',
+      header: 'Data zgloszenia',
+      meta: { priority: 1 },
+      cell: ({ row }) => {
+        const val = row.original.reported_at
+        if (!val) return '—'
+        const d = new Date(val)
+        return isNaN(d.getTime()) ? val : d.toLocaleDateString('pl-PL')
+      },
+    },
   ], [categoryMap, priorityBadgeMap, projectMap])
 
   return (

@@ -1,8 +1,8 @@
-import { raw } from '@mikro-orm/core'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { WarrantyClaim } from '../../../data/entities'
 import { mapPreparedClaimToEntity, preparePortalClaimInput } from '../../../lib/claim-logic'
 import { getDictionaryOptions } from '../../../lib/lookups'
+import { buildClaimNumberContainsClause } from '../../../lib/list-filters'
 import { resolvePortalWarrantyClaimsScope } from '../../../lib/request-scope'
 import {
   parsePortalClaimsListQuery,
@@ -10,8 +10,6 @@ import {
   toPortalClaimRecord,
 } from '../../../lib/portal'
 import { WARRANTY_DICTIONARY_KEYS } from '../../../lib/constants'
-
-const claimNumberTextExpr = raw((alias) => `cast(${alias}.claim_number as text)`)
 
 const SORT_FIELD_MAP = {
   reportedAt: 'reportedAt',
@@ -70,7 +68,7 @@ export async function GET(request: Request) {
       where.$or = [
         { title: { $ilike: `%${query.search}%` } },
         { issueDescription: { $ilike: `%${query.search}%` } },
-        { [claimNumberTextExpr as unknown as string]: { $ilike: `%${query.search}%` } },
+        buildClaimNumberContainsClause(query.search),
       ]
     }
 

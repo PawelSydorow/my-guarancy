@@ -1,10 +1,12 @@
+'use client'
+
 import type { ReactNode } from 'react'
-import BremerLoginSection from './BremerLoginSection'
+import BremerBackofficeLoginSection from './BremerBackofficeLoginSection'
 
 type Props = {
   children?: ReactNode
 }
 
 export default function BremerLoginSectionWrapper({ children }: Props) {
-  return <BremerLoginSection>{children}</BremerLoginSection>
+  return <BremerBackofficeLoginSection>{children}</BremerBackofficeLoginSection>
 }

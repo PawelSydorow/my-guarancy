@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import { resolveLocalizedAppMetadata } from '@/lib/metadata'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { resolveTranslations } from '@open-mercato/shared/lib/i18n/server'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import type { EntityManager } from '@mikro-orm/postgresql'
@@ -44,6 +45,8 @@ for (const route of apiRoutes) {
 }
 
 export default async function Home() {
+  redirect('/login')
+
   const { t } = await resolveTranslations()
 
   const cookieStore = await cookies()
@@ -61,15 +64,17 @@ export default async function Home() {
     tenantsCount = await em.count('Tenant', {})
     orgsCount = await em.count('Organization', {})
     dbStatus = t('app.page.dbStatus.connected', 'Connected')
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : t('app.page.dbStatus.noConnection', 'no connection')
+  } catch {
+    const message = t('app.page.dbStatus.noConnection', 'no connection')
     dbStatus = t('app.page.dbStatus.error', 'Error: {message}', { message })
   }
 
+  const resendApiKey = process.env.RESEND_API_KEY ?? ''
+  const appUrl = process.env.APP_URL ?? ''
   const onboardingAvailable =
     process.env.SELF_SERVICE_ONBOARDING_ENABLED === 'true' &&
-    Boolean(process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim()) &&
-    Boolean(process.env.APP_URL && process.env.APP_URL.trim())
+    Boolean(resendApiKey && resendApiKey.trim()) &&
+    Boolean(appUrl && appUrl.trim())
 
   return (
     <main className="min-h-svh w-full px-4 py-6 sm:px-6 lg:px-8">

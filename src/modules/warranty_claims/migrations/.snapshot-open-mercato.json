@@ -557,6 +557,22 @@
           "enumItems": [],
           "mappedType": "uuid"
         },
+        "claim_number": {
+          "name": "claim_number",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "integer"
+        },
         "title": {
           "name": "title",
           "type": "text",
@@ -716,6 +732,22 @@
           "comment": null,
           "enumItems": [],
           "mappedType": "datetime"
+        },
+        "rejection_reason": {
+          "name": "rejection_reason",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "text"
         },
         "subcontractor_id": {
           "name": "subcontractor_id",
@@ -927,6 +959,16 @@
           "unique": false
         },
         {
+          "keyName": "warranty_claims_claims_claim_number_idx",
+          "columnNames": [
+            "claim_number"
+          ],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
           "keyName": "warranty_claims_claims_project_idx",
           "columnNames": [
             "project_id"
@@ -935,6 +977,19 @@
           "constraint": false,
           "primary": false,
           "unique": false
+        },
+        {
+          "keyName": "warranty_claims_claims_scope_project_claim_number_unique",
+          "columnNames": [
+            "organization_id",
+            "tenant_id",
+            "project_id",
+            "claim_number"
+          ],
+          "composite": true,
+          "constraint": true,
+          "primary": false,
+          "unique": true
         },
         {
           "keyName": "warranty_claims_claims_pkey",

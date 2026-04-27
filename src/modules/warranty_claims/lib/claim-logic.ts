@@ -35,6 +35,7 @@ type ClaimEntityInput = {
   reported_at: string
   assigned_user_id?: string | null
   resolved_at?: string | null
+  rejection_reason?: string | null
   subcontractor_id?: string | null
   subcontractor_name?: string | null
   subcontractor_address?: string | null
@@ -58,6 +59,7 @@ export type PreparedClaimInput<T extends ClaimMutationInput = ClaimMutationInput
   status_key: string
   reported_at: string
   resolved_at?: string | null
+  rejection_reason?: string | null
   subcontractor_name?: string | null
   subcontractor_address?: string | null
   subcontractor_email?: string | null
@@ -267,10 +269,15 @@ async function assertAssignedUser(
 }
 
 function resolveResolvedAt(statusKey: string, resolvedAtIso: string | null): string | null {
-  if (statusKey === WARRANTY_STATUS_KEYS.completed && !resolvedAtIso) {
+  if (statusKey === WARRANTY_STATUS_KEYS.resolved && !resolvedAtIso) {
     return new Date().toISOString()
   }
   return resolvedAtIso
+}
+
+function resolveRejectionReason(statusKey: string, rejectionReason: string | null | undefined): string | null {
+  if (statusKey !== WARRANTY_STATUS_KEYS.rejected) return null
+  return rejectionReason?.trim() || null
 }
 
 export async function prepareClaimInput<T extends ClaimMutationInput>(
@@ -324,6 +331,7 @@ export async function prepareClaimInput<T extends ClaimMutationInput>(
   // preserve existing resolved_at from DB if input omits it — prevents overwrite on PUT
   const currentResolvedAt = prepared.resolved_at ?? (existing?.resolvedAt ? existing.resolvedAt.toISOString() : null)
   prepared.resolved_at = resolveResolvedAt(prepared.status_key, currentResolvedAt)
+  prepared.rejection_reason = resolveRejectionReason(prepared.status_key, prepared.rejection_reason)
   prepared.claim_number = existing?.claimNumber ?? await resolveNextClaimNumber(em, scope, prepared.project_id)
 
   return prepared as PreparedClaimInput<T> & { claim_number: number }
@@ -383,6 +391,7 @@ export function mapPreparedClaimToEntity(input: ClaimEntityInput, scope: Scope) 
     reportedAt: new Date(input.reported_at),
     assignedUserId: input.assigned_user_id ?? null,
     resolvedAt: input.resolved_at ? new Date(input.resolved_at) : null,
+    rejectionReason: input.rejection_reason ?? null,
     subcontractorId: input.subcontractor_id ?? null,
     subcontractorName: input.subcontractor_name ?? null,
     subcontractorAddress: input.subcontractor_address ?? null,
@@ -403,6 +412,7 @@ export function applyPreparedClaimToEntity<T extends ClaimMutationInput>(entity:
   entity.reportedAt = new Date(input.reported_at)
   entity.assignedUserId = input.assigned_user_id ?? null
   entity.resolvedAt = input.resolved_at ? new Date(input.resolved_at) : null
+  entity.rejectionReason = input.rejection_reason ?? null
   entity.subcontractorId = input.subcontractor_id ?? null
   entity.subcontractorName = input.subcontractor_name ?? null
   entity.subcontractorAddress = input.subcontractor_address ?? null
@@ -431,6 +441,7 @@ export function serializeClaimRecord(entity: WarrantyClaim) {
     reported_at: entity.reportedAt.toISOString(),
     assigned_user_id: entity.assignedUserId ?? null,
     resolved_at: entity.resolvedAt ? entity.resolvedAt.toISOString() : null,
+    rejection_reason: entity.rejectionReason ?? null,
     subcontractor_id: entity.subcontractorId ?? null,
     subcontractor_name: entity.subcontractorName ?? null,
     subcontractor_address: entity.subcontractorAddress ?? null,

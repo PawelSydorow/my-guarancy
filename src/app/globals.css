@@ -1049,10 +1049,15 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     display: block;
     flex: 0 0 50%;
     min-height: 100svh;
-    background-image: url("/login-bg-magnice.jpg");
+    background-image: var(--bremer-login-bg, url("/login-bg-magnice.jpg"));
     background-size: cover;
     background-position: 55% 58%;
     background-repeat: no-repeat;
+  }
+
+  body[data-bremer-auth-page="backoffice"]:has(form[data-auth-ready]) .min-h-svh.flex.items-center.justify-center::before {
+    background-image: url("/login-bg-backend.jpg");
+    background-position: 35% 58%;
   }
 
   body[data-bremer-auth-page^="reset"] .min-h-svh.flex.items-center.justify-center.p-4::before {
@@ -1060,9 +1065,9 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     display: block;
     flex: 0 0 50%;
     min-height: 100svh;
-    background-image: url("/login-bg-magnice.jpg");
+    background-image: url("/login-bg-backend.jpg");
     background-size: cover;
-    background-position: 55% 58%;
+    background-position: 35% 58%;
     background-repeat: no-repeat;
   }
 

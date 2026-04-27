@@ -274,7 +274,6 @@ function ShellFrame({
   headerTitle,
   portalHome,
   loginHref,
-  signupHref,
   authenticated,
   mobileOpen,
   setMobileOpen,
@@ -285,28 +284,35 @@ function ShellFrame({
   headerTitle: string
   portalHome: string
   loginHref: string
-  signupHref: string
   authenticated: boolean
   mobileOpen: boolean
   setMobileOpen: (value: boolean) => void
   children: ReactNode
   t: TranslateFn
 }) {
+  const pathname = usePathname()
+  const isPortalLoginPage = pathname.endsWith('/portal/login')
+
   if (!authenticated) {
+    if (isPortalLoginPage) {
+      return (
+        <div className="min-h-svh bg-background text-foreground" data-customer-portal-shell="public-auth">
+          {children}
+        </div>
+      )
+    }
+
     return (
       <div className="flex min-h-svh flex-col bg-slate-50 text-foreground" data-customer-portal-shell="public">
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/80">
           <div className="mx-auto flex h-16 w-full max-w-screen-lg items-center justify-between px-6">
             <Link href={portalHome} className="flex items-center gap-2.5 text-foreground transition hover:opacity-80" aria-label={headerTitle}>
-              <Image src="/open-mercato.svg" alt="" width={28} height={28} priority />
+              <Image src="/bremer-mark.png" alt="" width={28} height={28} priority />
               <span className="text-[15px] font-semibold tracking-tight">{headerTitle}</span>
             </Link>
             <nav aria-label="Primary" className="flex items-center gap-1">
               <Button asChild variant="ghost" size="sm" className="text-[13px]">
                 <Link href={loginHref}>{t('portal.nav.login', 'Log In')}</Link>
-              </Button>
-              <Button asChild size="sm" className="rounded-lg text-[13px]">
-                <Link href={signupHref}>{t('portal.nav.signup', 'Sign Up')}</Link>
               </Button>
             </nav>
           </div>
@@ -321,7 +327,7 @@ function ShellFrame({
         <footer className="border-t border-slate-200/80 bg-white/80">
           <div className="mx-auto flex w-full max-w-screen-lg items-center justify-between px-6 py-6">
             <Link href={portalHome} className="flex items-center gap-2 text-muted-foreground transition hover:text-foreground">
-              <Image src="/open-mercato.svg" alt="" width={20} height={20} />
+              <Image src="/bremer-mark.png" alt="" width={20} height={20} />
               <span className="text-sm font-medium text-foreground">{headerTitle}</span>
             </Link>
             <p className="text-xs text-muted-foreground/60">
@@ -453,7 +459,6 @@ function PortalShellFrame({
 
   const portalHome = resolvedOrgSlug ? `/${resolvedOrgSlug}/portal` : '/portal'
   const loginHref = resolvedOrgSlug ? `/${resolvedOrgSlug}/portal/login` : '/portal/login'
-  const signupHref = resolvedOrgSlug ? `/${resolvedOrgSlug}/portal/signup` : '/portal/signup'
   const headerTitle = resolvedOrgName || t('portal.title', 'Customer Portal')
   const closeMobile = useCallback(() => setMobileOpen(false), [])
 
@@ -572,7 +577,6 @@ function PortalShellFrame({
       headerTitle={headerTitle}
       portalHome={portalHome}
       loginHref={loginHref}
-      signupHref={signupHref}
       authenticated={resolvedAuthenticated}
       mobileOpen={mobileOpen}
       setMobileOpen={setMobileOpen}
