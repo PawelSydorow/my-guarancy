@@ -1,0 +1,7 @@
+[
+  { "value": "elewacja", "label": "Elewacja" },
+  { "value": "instalacja_wodna", "label": "Instalacja wodna" },
+  { "value": "instalacja_elektryczna", "label": "Instalacja elektryczna" },
+  { "value": "czesci_wspolne", "label": "Czesci wspolne" },
+  { "value": "zagospodarowanie_terenu", "label": "Zagospodarowanie terenu" }
+]

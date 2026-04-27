@@ -1,5 +1,4 @@
 import { headers } from 'next/headers'
-import { PortalLayoutShell } from '@open-mercato/ui/portal/PortalLayoutShell'
 import { getCustomerAuthFromCookies } from '@open-mercato/core/modules/customer_accounts/lib/customerAuthServer'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import { Organization } from '@open-mercato/core/modules/directory/data/entities'
@@ -7,6 +6,7 @@ import { CustomerUser } from '@open-mercato/core/modules/customer_accounts/data/
 import { FeatureTogglesService } from '@open-mercato/core/modules/feature_toggles/lib/feature-flag-check'
 import { resolveTranslations } from '@open-mercato/shared/lib/i18n/server'
 import type { EntityManager } from '@mikro-orm/postgresql'
+import { PortalLayoutShell } from '@/components/portal/PortalLayoutShell'
 
 type LayoutProps = {
   children: React.ReactNode

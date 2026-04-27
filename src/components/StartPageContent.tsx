@@ -33,47 +33,57 @@ function RoleTile({
 }: RoleTileProps) {
   const t = useT()
   const defaultDisabledCtaLabel = t('startPage.roleTile.loginUnavailable', 'Login unavailable')
+
   return (
-    <div className="rounded-lg border bg-card p-6 flex flex-col gap-4 transition-all hover:shadow-md">
-      <div className="flex items-start gap-4">
-        <div className="rounded-lg bg-primary/10 p-3 text-primary">
-          {icon}
+    <article className="group flex h-full flex-col justify-between border border-border bg-card p-6 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_0.75rem_1.5rem_rgba(1,1,26,0.12)]">
+      <div className="space-y-5">
+        <div className="flex items-start gap-4">
+          <div className="flex size-14 items-center justify-center border border-primary/20 bg-primary/8 text-primary">
+            {icon}
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+            <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
+
+        <div className="space-y-3">
+          <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            {t('startPage.roleTile.availableFeatures', 'Available Features:')}
+          </div>
+          <ul className="space-y-2">
+            {features.map((feature, idx) => (
+              <li key={idx} className="flex items-start gap-3 text-sm leading-6 text-foreground">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 bg-primary" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
-      
-      <div className="flex-1">
-        <div className="text-xs font-medium text-muted-foreground mb-2">{t('startPage.roleTile.availableFeatures', 'Available Features:')}</div>
-        <ul className="space-y-1.5">
-          {features.map((feature, idx) => (
-            <li key={idx} className="text-sm flex items-start gap-2">
-              <span className="text-primary mt-0.5">•</span>
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
       </div>
 
-      {disabled ? (
-        <>
-          <Button variant="outline" className="w-full cursor-not-allowed opacity-80" disabled>
-            {disabledCtaLabel ?? defaultDisabledCtaLabel}
+      <div className="mt-6 space-y-3">
+        {disabled ? (
+          <>
+            <Button variant="outline" className="w-full cursor-not-allowed opacity-80" disabled>
+              {disabledCtaLabel ?? defaultDisabledCtaLabel}
+            </Button>
+            {disabledMessage ? (
+              <p className="text-xs leading-6 text-muted-foreground">
+                {disabledMessage}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <Button asChild variant={variant} className="w-full justify-between">
+            <Link href={loginUrl}>
+              <span>{t('startPage.roleTile.loginAs', 'Login as {title}', { title })}</span>
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
           </Button>
-          {disabledMessage ? (
-            <p className="text-xs text-muted-foreground text-center leading-relaxed">
-              {disabledMessage}
-            </p>
-          ) : null}
-        </>
-      ) : (
-        <Button asChild variant={variant} className="w-full">
-          <Link href={loginUrl}>{t('startPage.roleTile.loginAs', 'Login as {title}', { title })}</Link>
-        </Button>
-      )}
-    </div>
+        )}
+      </div>
+    </article>
   )
 }
 
@@ -92,42 +102,67 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
 
   const handleCheckboxChange = (checked: boolean) => {
     setShowStartPage(checked)
-    // Set cookie to remember preference
     document.cookie = `show_start_page=${checked}; path=/; max-age=${365 * 24 * 60 * 60}; SameSite=Lax`
   }
 
   return (
     <>
-      <section className="rounded-lg border bg-gradient-to-br from-background to-muted/20 p-8 text-center">
-        <h2 className="text-2xl font-semibold mb-3">{t('startPage.welcome.title', 'Welcome to Your Open Mercato Installation')}</h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          {t('startPage.welcome.description', 'This is a customizable start page for your fresh Open Mercato installation. Choose your role below to get started and explore the features available to you.')}
-        </p>
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.8fr)]">
+        <div className="relative overflow-hidden border border-border bg-card px-6 py-8 sm:px-8">
+          <div className="absolute inset-y-0 right-0 hidden w-40 bg-[linear-gradient(180deg,rgba(0,103,255,0.12),rgba(252,60,0,0.12))] sm:block" />
+          <div className="relative max-w-3xl space-y-5">
+            <span className="inline-flex items-center border border-[#d7d8ea] bg-[#f5f5fb] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#3f4052]">
+              Warranty operations
+            </span>
+            <div className="space-y-3">
+              <h2 className="text-foreground">{t('startPage.welcome.title', 'Welcome to Your Open Mercato Installation')}</h2>
+              <p className="max-w-2xl text-base leading-7 text-muted-foreground">
+                Centralize claim intake, assign project responsibility quickly, and keep BREMER teams aligned around one operational flow.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-border bg-[#01011a] p-6 text-white">
+          <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/55">Current focus</div>
+          <div className="mt-4 space-y-4">
+            <div>
+              <div className="text-sm text-white/55">Core workflow</div>
+              <div className="mt-1 text-lg font-semibold">Claims, projects, and subcontractors</div>
+            </div>
+            <div>
+              <div className="text-sm text-white/55">Design direction</div>
+              <div className="mt-1 text-lg font-semibold">Sharp edges, dark surfaces, blue and orange action accents</div>
+            </div>
+            <div>
+              <div className="text-sm text-white/55">Base URL</div>
+              <code className="mt-1 block break-all border border-white/12 bg-white/6 px-3 py-2 text-xs text-white/82">{baseUrl}</code>
+            </div>
+          </div>
+        </div>
       </section>
 
       {showOnboardingCta ? (
-        <section className="rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20 p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6 shadow-sm">
-          <div className="flex items-start gap-4">
-            <div className="rounded-full bg-emerald-600 text-white p-3">
-              <Rocket className="size-6" />
-            </div>
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100">{t('startPage.onboarding.title', 'Launch your own workspace')}</h3>
-                <p className="text-sm text-emerald-800/80 dark:text-emerald-200/90">
+        <section className="border border-primary/25 bg-[linear-gradient(135deg,rgba(0,103,255,0.08),rgba(215,216,234,0.4))] p-6 md:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex size-14 shrink-0 items-center justify-center border border-primary bg-primary text-white">
+                <Rocket className="size-6" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl font-semibold text-foreground">{t('startPage.onboarding.title', 'Launch your own workspace')}</h3>
+                <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
                   {t('startPage.onboarding.description', 'Create a tenant, organization, and administrator account in minutes. We\'ll verify your email and deliver a pre-seeded environment so you can explore Open Mercato with real data.')}
                 </p>
+                <ul className="space-y-1 text-sm text-foreground">
+                  <li>{t('startPage.onboarding.feature1', 'Automatic tenant and sample data provisioning')}</li>
+                  <li>{t('startPage.onboarding.feature2', 'Ready-to-use superadmin credentials after verification')}</li>
+                </ul>
               </div>
-              <ul className="text-sm text-emerald-900/80 dark:text-emerald-200/90 space-y-1 list-disc pl-5 marker:text-emerald-600 dark:marker:text-emerald-400">
-                <li>{t('startPage.onboarding.feature1', 'Automatic tenant and sample data provisioning')}</li>
-                <li>{t('startPage.onboarding.feature2', 'Ready-to-use superadmin credentials after verification')}</li>
-              </ul>
             </div>
-          </div>
-          <div className="md:ml-auto">
-            <Button asChild className="bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-600 px-6 py-5 text-base font-semibold text-white shadow-md">
+            <Button asChild className="min-w-56 justify-between px-6">
               <Link href="/onboarding">
-                {t('startPage.onboarding.cta', 'Start onboarding')}
+                <span>{t('startPage.onboarding.cta', 'Start onboarding')}</span>
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
             </Button>
@@ -135,25 +170,30 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
         </section>
       ) : null}
 
-      <section className="rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900 p-4">
+      <section className="border border-[#d7d8ea] bg-[#f5f5fb] p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <Info className="size-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          <Info className="mt-0.5 size-5 shrink-0 text-primary" />
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">{t('startPage.defaultPassword.title', 'Default Password')}</h3>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+            <h3 className="text-sm font-semibold text-foreground">{t('startPage.defaultPassword.title', 'Default Password')}</h3>
+            <p className="mt-1 text-sm leading-7 text-[#3f4052]">
               {t('startPage.defaultPassword.description1', 'The default password for all demo accounts is')}{' '}
-              <code className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900 font-mono text-xs">secret</code>.
+              <code className="border border-primary/15 bg-white px-1.5 py-0.5 font-mono text-xs text-foreground">secret</code>.
               {' '}{t('startPage.defaultPassword.description2', 'To change passwords, use the CLI command:')}{' '}
-              <code className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900 font-mono text-xs">yarn mercato auth set-password --email &lt;email&gt; --password &lt;newPassword&gt;</code>
-              <span className="mt-2 block">{t('startPage.defaultPassword.description3', 'Demo account emails are printed in the terminal output during yarn initialize.')}</span>
+              <code className="border border-primary/15 bg-white px-1.5 py-0.5 font-mono text-xs text-foreground">yarn mercato auth set-password --email &lt;email&gt; --password &lt;newPassword&gt;</code>
+              <span className="mt-1 block">{t('startPage.defaultPassword.description3', 'Demo account emails are printed in the terminal output during yarn initialize.')}</span>
             </p>
           </div>
         </div>
       </section>
 
-      <section>
-        <h2 className="text-xl font-semibold mb-4">{t('startPage.chooseRole.title', 'Choose Your Role')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Access paths</div>
+            <h2 className="mt-2 text-foreground">{t('startPage.chooseRole.title', 'Choose Your Role')}</h2>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <RoleTile
             icon={<Shield className="size-6" />}
             title={t('startPage.roles.superAdmin.title', 'Super Admin')}
@@ -163,7 +203,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
               t('startPage.roles.superAdmin.feature2', 'Create and manage roles'),
               t('startPage.roles.superAdmin.feature3', 'Manage all users across organizations'),
               t('startPage.roles.superAdmin.feature4', 'System-wide configuration'),
-              t('startPage.roles.superAdmin.feature5', 'Access to all modules and features')
+              t('startPage.roles.superAdmin.feature5', 'Access to all modules and features'),
             ]}
             loginUrl="/login?role=superadmin"
             disabled={superAdminDisabled}
@@ -176,7 +216,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
                   href="https://github.com/open-mercato"
                   target="_blank"
                   rel="noreferrer"
-                  className="underline hover:text-primary transition-colors"
+                  className="underline transition-colors hover:text-primary"
                 >
                   github.com/open-mercato
                 </a>
@@ -184,7 +224,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
               </>
             }
           />
-          
+
           <RoleTile
             icon={<Users className="size-6" />}
             title={t('startPage.roles.admin.title', 'Admin')}
@@ -194,12 +234,12 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
               t('startPage.roles.admin.feature2', 'Manage users within organization'),
               t('startPage.roles.admin.feature3', 'Configure organization settings'),
               t('startPage.roles.admin.feature4', 'Access to admin modules'),
-              t('startPage.roles.admin.feature5', 'Report and analytics access')
+              t('startPage.roles.admin.feature5', 'Report and analytics access'),
             ]}
             loginUrl="/login?role=admin"
             variant="secondary"
           />
-          
+
           <RoleTile
             icon={<Briefcase className="size-6" />}
             title={t('startPage.roles.employee.title', 'Employee')}
@@ -209,7 +249,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
               t('startPage.roles.employee.feature2', 'Access organization resources'),
               t('startPage.roles.employee.feature3', 'Collaborate with team members'),
               t('startPage.roles.employee.feature4', 'View personal dashboard'),
-              t('startPage.roles.employee.feature5', 'Submit reports and updates')
+              t('startPage.roles.employee.feature5', 'Submit reports and updates'),
             ]}
             loginUrl="/login?role=employee"
             variant="outline"
@@ -217,42 +257,40 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
         </div>
       </section>
 
-      <section className="rounded-lg border bg-card p-6 space-y-4">
+      <section className="border border-border bg-card p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="rounded-full bg-primary/10 p-2 text-primary">
+            <span className="flex size-11 items-center justify-center border border-primary/20 bg-primary/8 text-primary">
               <BookOpen className="size-5" />
             </span>
             <div>
-              <h2 className="text-lg font-semibold">{t('startPage.apiResources.title', 'API resources')}</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-2xl font-semibold text-foreground">{t('startPage.apiResources.title', 'API resources')}</h2>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 {t('startPage.apiResources.description', 'Explore the official documentation and download the generated OpenAPI exports for this installation.')}
               </p>
             </div>
           </div>
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
           {apiDocs.map((resource) => (
             <a
               key={resource.href}
               href={resource.href}
               target={resource.external ? '_blank' : undefined}
               rel={resource.external ? 'noreferrer' : undefined}
-              className="rounded border bg-background p-4 text-sm transition hover:border-primary"
+              className="border border-border bg-background p-4 text-sm transition-colors hover:border-primary/35"
             >
-              <div className="font-medium text-foreground">{resource.label}</div>
-              <p className="mt-1 text-xs text-muted-foreground">{resource.description}</p>
-              <span className="mt-3 inline-flex text-xs font-medium text-primary">{resource.actionLabel ?? t('startPage.apiResources.openLink', 'Open link')}</span>
+              <div className="font-semibold text-foreground">{resource.label}</div>
+              <p className="mt-2 text-xs leading-6 text-muted-foreground">{resource.description}</p>
+              <span className="mt-4 inline-flex text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                {resource.actionLabel ?? t('startPage.apiResources.openLink', 'Open link')}
+              </span>
             </a>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">
-          {t('startPage.apiResources.baseUrl', 'Current API base URL:')}{' '}
-          <code className="rounded bg-muted px-2 py-0.5 text-[10px] text-foreground">{baseUrl}</code>
-        </p>
       </section>
 
-      <section className="rounded-lg border p-4 flex items-center justify-center gap-3">
+      <section className="flex items-center justify-center gap-3 border border-border bg-card px-4 py-4">
         <Checkbox
           id="show-start-page"
           checked={showStartPage}
@@ -260,7 +298,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
         />
         <label
           htmlFor="show-start-page"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+          className="cursor-pointer text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           {t('startPage.showNextTime', 'Display this start page next time')}
         </label>

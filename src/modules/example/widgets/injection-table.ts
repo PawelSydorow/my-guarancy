@@ -25,10 +25,12 @@ const alwaysEnabledInjectionTable: ModuleInjectionTable = {
     priority: 50,
   },
   'example:phase-c-handlers': 'example.injection.crud-validation',
-  'menu:sidebar:main': {
-    widgetId: 'example.injection.example-menus',
-    priority: 50,
-  },
+  // Sidebar demo menu is intentionally disabled in this app.
+  // Uncomment to restore the example "Example Todos" shortcut in the backend sidebar.
+  // 'menu:sidebar:main': {
+  //   widgetId: 'example.injection.example-menus',
+  //   priority: 50,
+  // },
   'menu:topbar:profile-dropdown': {
     widgetId: 'example.injection.example-profile-menu',
     priority: 50,
