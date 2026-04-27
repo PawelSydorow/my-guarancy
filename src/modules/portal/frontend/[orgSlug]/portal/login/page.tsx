@@ -53,7 +53,7 @@ export default function PortalLoginPage({ params }: Props) {
         })
 
         if (result.ok && result.result?.ok) {
-          window.location.assign(`/${orgSlug}/portal/dashboard`)
+          window.location.assign(`/${orgSlug}/portal/warranty-claims`)
           return
         }
 

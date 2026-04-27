@@ -1,1 +1,9 @@
-export { default } from '@open-mercato/core/modules/portal/frontend/[orgSlug]/portal/dashboard/page'
+import { redirect } from 'next/navigation'
+
+type Props = {
+  params: { orgSlug: string }
+}
+
+export default function PortalDashboardPage({ params }: Props) {
+  redirect(`/${params.orgSlug}/portal/warranty-claims`)
+}

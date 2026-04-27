@@ -88,10 +88,6 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
     return new Map((lookupsQuery.data?.priorities ?? []).map((item) => [item.id, item.label]))
   }, [lookupsQuery.data?.priorities])
 
-  const projectLabels = React.useMemo(() => {
-    return new Map((lookupsQuery.data?.projects ?? []).map((item) => [item.id, item.label]))
-  }, [lookupsQuery.data?.projects])
-
   const statusMap = React.useMemo(() => {
     return new Map((lookupsQuery.data?.statuses ?? []).map((item) => [item.id, item.label]))
   }, [lookupsQuery.data?.statuses])
@@ -154,14 +150,7 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
     },
     { accessorKey: 'reportedAt', header: 'Data zgloszenia', meta: { priority: 1 }, cell: ({ row }) => formatDate(row.original.reportedAt) },
     { accessorKey: 'resolvedAt', header: 'Data rozwiazania', meta: { priority: 2 }, cell: ({ row }) => formatDate(row.original.resolvedAt) },
-    {
-      accessorKey: 'projectId',
-      header: 'Projekt',
-      enableSorting: false,
-      meta: { priority: 3, maxWidth: '320px' },
-      cell: ({ row }) => projectLabels.get(row.original.projectId) ?? row.original.projectId,
-    },
-  ], [orgSlug, priorityLabels, projectLabels])
+  ], [orgSlug, priorityLabels])
 
   const handleSortingChange = (next: SortingState) => {
     setSorting(next)
