@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import BremerLoginHero from '@/components/login/BremerLoginHero'
+import BremerBackofficeLoginHero from '@/components/login/BremerBackofficeLoginHero'
 
 function resolveAuthPage(pathname: string | null): '' | 'reset-request' | 'reset-token' {
   if (!pathname) return ''
@@ -30,5 +30,5 @@ export default function AuthPageChrome() {
 
   if (!authPage) return null
 
-  return <BremerLoginHero />
+  return <BremerBackofficeLoginHero />
 }

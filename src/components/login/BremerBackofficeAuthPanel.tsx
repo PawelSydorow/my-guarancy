@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import { useEffect, type ReactNode } from 'react'
 import BremerBackofficeLoginHero from './BremerBackofficeLoginHero'
 
 type Props = {
@@ -11,6 +13,11 @@ type Props = {
 }
 
 export default function BremerBackofficeAuthPanel({ title, description, children, footer, hero, badge }: Props) {
+  useEffect(() => {
+    document.body.setAttribute('data-bremer-auth-page', 'backoffice')
+    return () => { document.body.removeAttribute('data-bremer-auth-page') }
+  }, [])
+
   return (
     <>
       {hero ?? <BremerBackofficeLoginHero />}
