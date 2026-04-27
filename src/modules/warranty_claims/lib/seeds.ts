@@ -398,7 +398,7 @@ export function buildWarrantyProjectCatalog(): WarrantyProjectCatalogEntry[] {
   return projectSeeds.map((project, projectIndex) => {
     const rng = createRng(`${project.seedKey}:warranty-seed`)
     const subcontractorCount = intBetween(rng, 4, 10)
-    const claimCount = intBetween(rng, 3, 5)
+    const claimCount = projectIndex === 0 ? 4 : 0
     const categoriesForProject = uniqueSlice(rng, categorySeeds, intBetween(rng, 3, 4))
     const subcontractors = Array.from({ length: subcontractorCount }, (_, subcontractorIndex) => (
       buildSubcontractorSeed(project, projectIndex, subcontractorIndex)

@@ -9,7 +9,7 @@ type Scope = {
   organizationId: string
 }
 
-const claimNumberTextExpr = raw((alias) => `cast(${alias}.claim_number as text)`)
+const claimNumberTextExpr = raw((alias) => `lpad(cast(${alias}.claim_number as text), 3, '0')`)
 
 function normalizeSearchValue(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
