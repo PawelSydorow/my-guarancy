@@ -274,7 +274,6 @@ function ShellFrame({
   headerTitle,
   portalHome,
   loginHref,
-  signupHref,
   authenticated,
   mobileOpen,
   setMobileOpen,
@@ -285,7 +284,6 @@ function ShellFrame({
   headerTitle: string
   portalHome: string
   loginHref: string
-  signupHref: string
   authenticated: boolean
   mobileOpen: boolean
   setMobileOpen: (value: boolean) => void
@@ -315,9 +313,6 @@ function ShellFrame({
             <nav aria-label="Primary" className="flex items-center gap-1">
               <Button asChild variant="ghost" size="sm" className="text-[13px]">
                 <Link href={loginHref}>{t('portal.nav.login', 'Log In')}</Link>
-              </Button>
-              <Button asChild size="sm" className="rounded-lg text-[13px]">
-                <Link href={signupHref}>{t('portal.nav.signup', 'Sign Up')}</Link>
               </Button>
             </nav>
           </div>
@@ -464,7 +459,6 @@ function PortalShellFrame({
 
   const portalHome = resolvedOrgSlug ? `/${resolvedOrgSlug}/portal` : '/portal'
   const loginHref = resolvedOrgSlug ? `/${resolvedOrgSlug}/portal/login` : '/portal/login'
-  const signupHref = resolvedOrgSlug ? `/${resolvedOrgSlug}/portal/signup` : '/portal/signup'
   const headerTitle = resolvedOrgName || t('portal.title', 'Customer Portal')
   const closeMobile = useCallback(() => setMobileOpen(false), [])
 
@@ -583,7 +577,6 @@ function PortalShellFrame({
       headerTitle={headerTitle}
       portalHome={portalHome}
       loginHref={loginHref}
-      signupHref={signupHref}
       authenticated={resolvedAuthenticated}
       mobileOpen={mobileOpen}
       setMobileOpen={setMobileOpen}

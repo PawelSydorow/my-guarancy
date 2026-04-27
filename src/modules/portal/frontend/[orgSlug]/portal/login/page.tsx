@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { Button } from '@open-mercato/ui/primitives/button'
@@ -142,16 +141,6 @@ export default function PortalLoginPage({ params }: Props) {
             <Button type="submit" disabled={submitting} className="mt-2 h-10">
               {submitting ? t('portal.login.submitting', 'Signing in...') : t('portal.login.submit', 'Sign In')}
             </Button>
-
-            <p className="text-center text-[13px] text-muted-foreground">
-              {t('portal.login.noAccount', "Don't have an account?")}{' '}
-              <Link
-                href={`/${orgSlug}/portal/signup`}
-                className="font-medium text-foreground underline underline-offset-4 hover:opacity-80"
-              >
-                {t('portal.login.signupLink', 'Sign up')}
-              </Link>
-            </p>
           </form>
         </BremerLoginSection>
       </div>
