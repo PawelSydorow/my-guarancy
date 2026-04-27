@@ -1049,7 +1049,7 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     display: block;
     flex: 0 0 50%;
     min-height: 100svh;
-    background-image: url("/login-bg-magnice.jpg");
+    background-image: var(--bremer-login-bg, url("/login-bg-magnice.jpg"));
     background-size: cover;
     background-position: 55% 58%;
     background-repeat: no-repeat;
@@ -1060,7 +1060,7 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     display: block;
     flex: 0 0 50%;
     min-height: 100svh;
-    background-image: url("/login-bg-magnice.jpg");
+    background-image: var(--bremer-login-bg, url("/login-bg-magnice.jpg"));
     background-size: cover;
     background-position: 55% 58%;
     background-repeat: no-repeat;

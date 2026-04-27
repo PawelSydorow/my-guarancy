@@ -6,12 +6,13 @@ type Props = {
   description: string
   children: ReactNode
   footer?: ReactNode
+  hero?: ReactNode
 }
 
-export default function BremerAuthPanel({ title, description, children, footer }: Props) {
+export default function BremerAuthPanel({ title, description, children, footer, hero }: Props) {
   return (
     <>
-      <BremerLoginHero />
+      {hero ?? <BremerLoginHero />}
       <div className="w-full max-w-md px-6 lg:px-0">
         <div className="flex flex-col gap-10">
           <header className="flex flex-col gap-8">
