@@ -2376,9 +2376,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@open-mercato/ai-assistant@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/ai-assistant@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/ai-assistant@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/ai-assistant@npm:0.5.0"
   dependencies:
     "@ai-sdk/anthropic": "npm:^3.0.71"
     "@ai-sdk/google": "npm:^3.0.64"
@@ -2392,16 +2392,16 @@ __metadata:
     react-markdown: "npm:^10.1.0"
     zod-to-json-schema: "npm:^3.25.2"
   peerDependencies:
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
-    "@open-mercato/ui": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
+    "@open-mercato/ui": 0.5.0
     zod: ">=3.23.0"
-  checksum: 10c0/ed8695b03486ab17aa97a9583d356c26acbf06823ae3aaa912411057fc3c0f4ab7a1803c66ee3e0f7df3310ce581cb62d0e2cc5d6192c4091cc0c514aa490bd9
+  checksum: 10c0/acb35121e46c083f8098284e8683c4b92d5ce86db7e792e5ab3f7ab5e1664a007127fe8ae7d08319787f40837907cbe02a088e1fa78898a365cedb09ed889060
   languageName: node
   linkType: hard
 
-"@open-mercato/cache@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/cache@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/cache@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/cache@npm:0.5.0"
   dependencies:
     "@types/better-sqlite3": "npm:^7.6.13"
   peerDependencies:
@@ -2412,34 +2412,34 @@ __metadata:
       optional: true
     ioredis:
       optional: true
-  checksum: 10c0/be6255262fed2f955a6bb9b74c3c75fbd031671f1504fa13b6246804c85146df1c2765f675ec349ae3c718252f4e075437085bb687242ff0693d4b117430403a
+  checksum: 10c0/f87d68b48656e100150454aadb91d3221216aa9603d33c353af4145e642ddac39ff35d81b97690ba386126865aa263c8a79ce4022831d41c237bcd4f7a582844
   languageName: node
   linkType: hard
 
-"@open-mercato/checkout@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/checkout@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/checkout@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/checkout@npm:0.5.0"
   dependencies:
-    "@open-mercato/core": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/ui": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/core": "npm:0.5.0"
+    "@open-mercato/ui": "npm:0.5.0"
     bcryptjs: "npm:^3.0.3"
   peerDependencies:
     "@mikro-orm/postgresql": ^6.6.10
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
     react: ^19.0.0
-  checksum: 10c0/fcb639bab7aeac85e8204aabe3d45898f6e648e935ef07804d9eafdc2613fa6e05b38b479200b0f778b20075fb8e0c4301cd39c49ccb9d18c9bb82036bdff9b3
+  checksum: 10c0/dfd181d2581caab20781c3349fe019c347c02ad28102fbce0afb004f2c7062f15610541923f9661a831ed5348075c8c8916758f990381374cc2b89852942e284
   languageName: node
   linkType: hard
 
-"@open-mercato/cli@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/cli@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/cli@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/cli@npm:0.5.0"
   dependencies:
     "@mikro-orm/core": "npm:^6.6.10"
     "@mikro-orm/migrations": "npm:^6.6.10"
     "@mikro-orm/postgresql": "npm:^6.6.10"
-    "@open-mercato/queue": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/shared": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/queue": "npm:0.5.0"
+    "@open-mercato/shared": "npm:0.5.0"
     cross-spawn: "npm:^7.0.6"
     pg: "npm:8.20.0"
     semver: "npm:^7.7.4"
@@ -2448,25 +2448,25 @@ __metadata:
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
   peerDependencies:
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
   bin:
     mercato: bin/mercato
-  checksum: 10c0/d4e1053708980a61b40cf3b83baf5bb1e89217421e241137ab9d961282b130fe67f025087ee58248e854990f04f0f145c043f90fe513b8d91a5d7619d15a559d
+  checksum: 10c0/5084bc4cbff6145448be037f9eed2f24cfff4ea7cf4b53ec67c2e0f202503b1797caf95370980a07a8c649fd8efee57bd1ae12968516ce2850c6b8722a59dfff
   languageName: node
   linkType: hard
 
-"@open-mercato/content@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/content@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/content@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/content@npm:0.5.0"
   peerDependencies:
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
-  checksum: 10c0/94c628177d25f26710760c6733fa4257a3079522c57965c640d8e819d106382894465d4ec8c9d2a7e5382fefd483178f4bb4281f49bb9962ff18a6ff1214b4c7
+    "@open-mercato/shared": 0.5.0
+  checksum: 10c0/eaf81efc5de5766e525c8dbce8c8982bdd4432362c2db9363376a18b5bd933bd1e1ef015a20d20c3ae4a89873bfa3c5112a628c3db6e1fea1c96b93b9d4f7cf1
   languageName: node
   linkType: hard
 
-"@open-mercato/core@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/core@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/core@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/core@npm:0.5.0"
   dependencies:
     "@xyflow/react": "npm:^12.10.2"
     ai: "npm:^6.0.168"
@@ -2478,73 +2478,73 @@ __metadata:
     semver: "npm:^7.7.4"
     ts-pattern: "npm:^5.0.0"
   peerDependencies:
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
-  checksum: 10c0/5d9a60dfac9e38a196fd856af253c4e50a2447751e6ac5d20df82426b323ebba9bf08f510e4fa66b32955f0b92fcc2e92e93b3c009b04e3271e928d6862ebfe6
+    "@open-mercato/shared": 0.5.0
+  checksum: 10c0/ec490c57fe777fffb879506833c66366ad32a12da5fdb292ecf21fe0871c4c0a5883815f1be93e2d1dd518d394b70132556f2a34bae58b5a7e023b6368f5548b
   languageName: node
   linkType: hard
 
-"@open-mercato/events@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/events@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/events@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/events@npm:0.5.0"
   dependencies:
-    "@open-mercato/queue": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/shared": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/queue": "npm:0.5.0"
+    "@open-mercato/shared": "npm:0.5.0"
     pg: "npm:8.20.0"
-  checksum: 10c0/ef5b9c8a9cc3ce202900bc0e4fee5a64698172c401ddb46a281cda50697e1d6f1a6046463d112747cff5bde0f82883117fadce493a40580d9f5441238fd84bfc
+  checksum: 10c0/10e1bd1af76816ac1bb7ec200c65be59526788f0ee81a2dce4f9a5be8c0755313dfbc2295163ad3ea6b15bc14eb2eda113d231f4fc7f97fb72fa2179f4ca02ea
   languageName: node
   linkType: hard
 
-"@open-mercato/gateway-stripe@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/gateway-stripe@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/gateway-stripe@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/gateway-stripe@npm:0.5.0"
   dependencies:
-    "@open-mercato/core": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/queue": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/ui": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/core": "npm:0.5.0"
+    "@open-mercato/queue": "npm:0.5.0"
+    "@open-mercato/ui": "npm:0.5.0"
     "@stripe/react-stripe-js": "npm:^6.2.0"
     "@stripe/stripe-js": "npm:^9.2.0"
     stripe: "npm:^22.0.2"
   peerDependencies:
     "@mikro-orm/postgresql": ^6.6.10
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
     react: ^19.0.0
-  checksum: 10c0/1563d7e9bd191e0c0b215d4924923d6f4fcee968d3767604ee92cd5b51e8b196e09fe4adaf6f30a182570d52e6c8eba6dcb2c5adb148cd67f056328eee778e5d
+  checksum: 10c0/5139dafd9b7ab3ccbf5d93882f66e391edc378191f60938ca11606bd3544cfb90979a9a7cd05dd25b8d1985e25b35aae776a1f6b3f7711e868a989540adb8e0d
   languageName: node
   linkType: hard
 
-"@open-mercato/onboarding@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/onboarding@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/onboarding@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/onboarding@npm:0.5.0"
   peerDependencies:
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
-  checksum: 10c0/a03c1ddc5233681088d0af0d8ab457f013141d8e61426997b3936334c700970368d4d3894a2d013760862df518af4d82d5157d8bfc5f84ec73fbf17ce48d3d08
+    "@open-mercato/shared": 0.5.0
+  checksum: 10c0/84ce60f3b9a8765902b14c7770a339f891162bd32e9892c10f8a29a470b88e2dabbb2ad455c89bfcaff6f2bf4e9772456910772f8b5812092f2685ac141351f6
   languageName: node
   linkType: hard
 
-"@open-mercato/queue@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/queue@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/queue@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/queue@npm:0.5.0"
   dependencies:
-    "@open-mercato/shared": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/shared": "npm:0.5.0"
   peerDependencies:
     bullmq: ^5.0.0
   peerDependenciesMeta:
     bullmq:
       optional: true
-  checksum: 10c0/d98f94a5f892eceb5fc2506631b966df93d62eba9520bf2559e939ed041e9bbb3e8fe6bc607a08c80c427146f6fb3c64e8cd718786d70d1ab1a5f8a0da035235
+  checksum: 10c0/4de7f695c9f4cea0cf6497b819463794a27664b78eff08c4fd5a1cd5f06da15c5c3f13857c1992f7167abe1135d2515a2d79e516701874da3c22e5d8ca746bcb
   languageName: node
   linkType: hard
 
-"@open-mercato/scheduler@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/scheduler@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/scheduler@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/scheduler@npm:0.5.0"
   dependencies:
-    "@open-mercato/events": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/queue": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/events": "npm:0.5.0"
+    "@open-mercato/queue": "npm:0.5.0"
     cron-parser: "npm:^5.5.0"
   peerDependencies:
     "@mikro-orm/core": ^6.6.10
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
     bullmq: ^5.0.0
     ioredis: ^5.0.0
     zod: ">=3.23.0"
@@ -2553,13 +2553,13 @@ __metadata:
       optional: true
     ioredis:
       optional: true
-  checksum: 10c0/4d51e93ee005c8799edc5a5b34cd2f420a90617e6f9f99310b853c058cdd4c69758a408e216845ecbda7ff2d4f5fe11b26d48ca22436a6f9e0def2f9539967dc
+  checksum: 10c0/a7cf26fab31637d10e8d8e79722d217f44f5c824ef4f23956f0b5563a53114f821564d52f84ba6584429423ddbaaec131126039c68a2720283ab96b62a5f4999
   languageName: node
   linkType: hard
 
-"@open-mercato/search@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/search@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/search@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/search@npm:0.5.0"
   dependencies:
     "@ai-sdk/amazon-bedrock": "npm:^4.0.96"
     "@ai-sdk/cohere": "npm:^3.0.30"
@@ -2572,42 +2572,42 @@ __metadata:
     pg: "npm:8.20.0"
     zod: "npm:^4.3.6"
   peerDependencies:
-    "@open-mercato/core": 0.5.1-develop.2657.a01847a9fa
-    "@open-mercato/queue": 0.5.1-develop.2657.a01847a9fa
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
-  checksum: 10c0/9643c5c11bad8368ac956aa421b0c053eca1b02512668bf7d1ee7c8ac0357e55b1a748a77dc26af588029d6cf8ff77a2932218b7637c54d833fa0b95ee397c81
+    "@open-mercato/core": 0.5.0
+    "@open-mercato/queue": 0.5.0
+    "@open-mercato/shared": 0.5.0
+  checksum: 10c0/caac77d4ac6f6305e7725ca3d4c41106935a369b2dd987e58db00f900123d4789ffd3969c703c537bcddb37eae152cfede909ba07486816dd99de3070ac93e9e
   languageName: node
   linkType: hard
 
-"@open-mercato/shared@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/shared@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/shared@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/shared@npm:0.5.0"
   dependencies:
     rate-limiter-flexible: "npm:^11.0.1"
     sanitize-html: "npm:^2.17.2"
-  checksum: 10c0/f813fd361681ad16fae390c34a73a283e88821c27bc118464ebd31d8861cfe2aee6512eee7ad1529bb9fce06c6a6ff6a7c20c87b56ece0beb82a4d9c1f5989d0
+  checksum: 10c0/c10c27502ec2607b6c957c88458e089dd48e965070efbc8c93aa9f338b0c4d704b5bf60f93290caa550a74bc078fff61f7d71fe32442a6a748ff3bfb7855026f
   languageName: node
   linkType: hard
 
-"@open-mercato/sync-akeneo@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/sync-akeneo@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/sync-akeneo@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/sync-akeneo@npm:0.5.0"
   dependencies:
-    "@open-mercato/core": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/ui": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/core": "npm:0.5.0"
+    "@open-mercato/ui": "npm:0.5.0"
     node-html-markdown: "npm:^2.0.0"
   peerDependencies:
     "@mikro-orm/postgresql": ^6.6.10
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
     react: ^19.0.0
     react-dom: ^19.0.0
-  checksum: 10c0/26832711ba2c02f93b881aa361f9db17e2e52bbd49bdd0b5517ca7c7f7bf3705b77bc88a2afda7a94df4791c94423a7b5ca09e63824802c82308ed33a8e8def3
+  checksum: 10c0/fe89b511c0df0573936148afa37a4f051f6deac235f3132890ed92cc27325113283668b0622bc9a72ec379548ea909f5517474246e63430d79818014bc30362c
   languageName: node
   linkType: hard
 
-"@open-mercato/ui@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/ui@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/ui@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/ui@npm:0.5.0"
   dependencies:
     "@dnd-kit/core": "npm:^6.3.1"
     "@dnd-kit/sortable": "npm:^10.0.0"
@@ -2620,26 +2620,26 @@ __metadata:
     react-day-picker: "npm:^9.14.0"
     recharts: "npm:^3.8.1"
   peerDependencies:
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10c0/d02e857979bd7fb7dc53ac26979af14a4484f14378f246e11761ddbd162640dd657d9050ddb12b2c627e25f29415bab06d11e75e03253510414b7cd7b4f31118
+  checksum: 10c0/8552cb6a78587c73024d82cb52038fdc93c24fc4d2d1d6296fe6f88536a6547e8a693052684ebd60791bb03049cd770892685ec4a616f10f3c090df08e00bebb
   languageName: node
   linkType: hard
 
-"@open-mercato/webhooks@npm:0.5.1-develop.2657.a01847a9fa":
-  version: 0.5.1-develop.2657.a01847a9fa
-  resolution: "@open-mercato/webhooks@npm:0.5.1-develop.2657.a01847a9fa"
+"@open-mercato/webhooks@npm:0.5.0":
+  version: 0.5.0
+  resolution: "@open-mercato/webhooks@npm:0.5.0"
   dependencies:
-    "@open-mercato/core": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/queue": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/ui": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/core": "npm:0.5.0"
+    "@open-mercato/queue": "npm:0.5.0"
+    "@open-mercato/ui": "npm:0.5.0"
   peerDependencies:
     "@mikro-orm/postgresql": ^6.6.10
-    "@open-mercato/shared": 0.5.1-develop.2657.a01847a9fa
+    "@open-mercato/shared": 0.5.0
     react: ^19.0.0
     react-dom: ^19.0.0
-  checksum: 10c0/fddb3e6d17e517f2606a696e231f3ec3144851911d70e1904cad9cf10d070e21f51cea0371d3e63dcf59a65d5c4587d4dbddbbacf38fcce9152be283e69428ef
+  checksum: 10c0/8427d09cacdd85057ab18f65df8790976a8940d9865e6e6222b8af951c6a1cdfa3b1a0ed331be2239c922ea743cae8a659e3398d45be76b90712ea560240f004
   languageName: node
   linkType: hard
 
@@ -12114,22 +12114,22 @@ __metadata:
     "@mikro-orm/postgresql": "npm:^6.6.2"
     "@modelcontextprotocol/sdk": "npm:^1.26.0"
     "@napi-rs/canvas": "npm:^0.1.78"
-    "@open-mercato/ai-assistant": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/cache": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/checkout": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/cli": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/content": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/core": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/events": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/gateway-stripe": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/onboarding": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/queue": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/scheduler": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/search": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/shared": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/sync-akeneo": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/ui": "npm:0.5.1-develop.2657.a01847a9fa"
-    "@open-mercato/webhooks": "npm:0.5.1-develop.2657.a01847a9fa"
+    "@open-mercato/ai-assistant": "npm:0.5.0"
+    "@open-mercato/cache": "npm:0.5.0"
+    "@open-mercato/checkout": "npm:0.5.0"
+    "@open-mercato/cli": "npm:0.5.0"
+    "@open-mercato/content": "npm:0.5.0"
+    "@open-mercato/core": "npm:0.5.0"
+    "@open-mercato/events": "npm:0.5.0"
+    "@open-mercato/gateway-stripe": "npm:0.5.0"
+    "@open-mercato/onboarding": "npm:0.5.0"
+    "@open-mercato/queue": "npm:0.5.0"
+    "@open-mercato/scheduler": "npm:0.5.0"
+    "@open-mercato/search": "npm:0.5.0"
+    "@open-mercato/shared": "npm:0.5.0"
+    "@open-mercato/sync-akeneo": "npm:0.5.0"
+    "@open-mercato/ui": "npm:0.5.0"
+    "@open-mercato/webhooks": "npm:0.5.0"
     "@playwright/test": "npm:^1.58.2"
     "@radix-ui/react-checkbox": "npm:^1.3.3"
     "@radix-ui/react-dialog": "npm:^1.0.5"

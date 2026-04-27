@@ -331,7 +331,7 @@ function buildClaimSeed(
     statusKey = pickWeighted(rng, CLAIM_STATUS_WEIGHTS[WARRANTY_STATUS_KEYS.resolved] as Array<{ value: string; weight: number }>)
   }
 
-  const priorityKey = pickWeighted(rng, PRIORITY_BY_STATUS[statusKey] as Array<{ value: string; weight: number }>)
+  const priorityKey = pick(rng, PRIORITY_BY_STATUS[statusKey] ?? ['sredni'])
 
   let resolvedAt: string | null = null
   let rejectionReason: string | null = null
