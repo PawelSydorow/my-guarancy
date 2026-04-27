@@ -2,16 +2,61 @@
   {
     "seedKey": "osiedle-polnoc-a",
     "name": "Osiedle Polnoc - Etap A",
-    "code": "OPA-001"
+    "code": "OPA-001",
+    "shortLabel": "Polnoc A"
   },
   {
     "seedKey": "osiedle-polnoc-b",
     "name": "Osiedle Polnoc - Etap B",
-    "code": "OPB-002"
+    "code": "OPB-002",
+    "shortLabel": "Polnoc B"
   },
   {
     "seedKey": "kameralna-zielona",
     "name": "Kameralna Zielona",
-    "code": "KZ-003"
+    "code": "KZ-003",
+    "shortLabel": "Zielona"
+  },
+  {
+    "seedKey": "sloneczne-tarasy",
+    "name": "Sloneczne Tarasy",
+    "code": "ST-004",
+    "shortLabel": "Tarasy"
+  },
+  {
+    "seedKey": "nova-przystan",
+    "name": "Nova Przystan",
+    "code": "NP-005",
+    "shortLabel": "Przystan"
+  },
+  {
+    "seedKey": "rezydencja-parkowa",
+    "name": "Rezydencja Parkowa",
+    "code": "RP-006",
+    "shortLabel": "Parkowa"
+  },
+  {
+    "seedKey": "willa-na-wzgorzu",
+    "name": "Willa Na Wzgorzu",
+    "code": "WNW-007",
+    "shortLabel": "Wzgorze"
+  },
+  {
+    "seedKey": "apartamenty-miejskie",
+    "name": "Apartamenty Miejskie",
+    "code": "AM-008",
+    "shortLabel": "Centrum"
+  },
+  {
+    "seedKey": "apartamenty-nad-rzeka",
+    "name": "Apartamenty Nad Rzeka",
+    "code": "ANR-009",
+    "shortLabel": "Rzeka"
+  },
+  {
+    "seedKey": "zielony-zakatek",
+    "name": "Zielony Zakatek",
+    "code": "ZZ-010",
+    "shortLabel": "Zakatek"
   }
 ]

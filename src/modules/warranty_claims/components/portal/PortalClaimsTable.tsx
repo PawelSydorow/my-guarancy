@@ -170,15 +170,10 @@ export default function PortalClaimsTable({ orgSlug }: Props) {
   return (
     <div className="space-y-6">
       <PortalPageHeader
-        label="Portal klienta"
-        title="Zgloszenia gwarancyjne"
-        description="Sprawdz status swoich zgloszen, filtrowanie i historie realizacji."
-        action={(
-          <Button asChild className="rounded-none">
-            <Link href={`/${orgSlug}/portal/warranty-claims/create`}>Nowe zgloszenie</Link>
-          </Button>
-        )}
-      />
+      label="Portal klienta"
+      title="Zgloszenia gwarancyjne"
+      description="Sprawdz status swoich zgloszen, filtrowanie i historie realizacji."
+    />
 
       <DataTable
         title="Zgloszenia"

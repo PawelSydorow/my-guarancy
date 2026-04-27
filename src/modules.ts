@@ -6,7 +6,7 @@ import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 export type ModuleEntry = { id: string; from?: '@open-mercato/core' | '@app' | string }
 
 export const enabledModules: ModuleEntry[] = [
- // { id: 'dashboards', from: '@open-mercato/core' },
+  { id: 'dashboards', from: '@open-mercato/core' },
   { id: 'auth', from: '@open-mercato/core' },
   { id: 'directory', from: '@open-mercato/core' },
  // { id: 'customers', from: '@open-mercato/core' },
@@ -24,7 +24,7 @@ export const enabledModules: ModuleEntry[] = [
  // { id: 'onboarding', from: '@open-mercato/onboarding' },
  // { id: 'api_docs', from: '@open-mercato/core' },
  // { id: 'business_rules', from: '@open-mercato/core' },
- // { id: 'feature_toggles', from: '@open-mercato/core' },
+  { id: 'feature_toggles', from: '@open-mercato/core' },
  // { id: 'workflows', from: '@open-mercato/core' },
  // { id: 'search', from: '@open-mercato/search' },
  // { id: 'currencies', from: '@open-mercato/core' },

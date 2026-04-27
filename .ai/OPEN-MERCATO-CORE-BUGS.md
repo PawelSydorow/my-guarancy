@@ -411,6 +411,45 @@ Rekomendacja do upstream:
 - albo ukrywac sidebar do czasu `isChromeReady`,
 - albo pokazac stan loading zamiast renderowac pierwszy, nietrafiony stan menu.
 
+## Bug 009: `mercato init` pada gdy modul `feature_toggles` lub `dashboards` jest wylaczony w `src/modules.ts`
+
+Status:
+- otwarte
+- workaround: wlacz oba moduly tymczasowo na czas inicjalizacji, potem zakomentuj z powrotem
+- bez zmiany w `@open-mercato/cli`
+
+Obszar:
+- `@open-mercato/cli`
+- `mercato init` / `yarn initialize`
+- seed podczas inicjalizacji
+
+Jak odtworzyc:
+1. Zakomentuj `feature_toggles` i/lub `dashboards` w [src/modules.ts](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules.ts).
+2. Uruchom `yarn initialize`.
+3. Init pada z bledem `Module not found: "feature_toggles"` lub `Module not found: "dashboards"`.
+
+Przyczyna (znana lokalizacja w CLI):
+- `mercato.js` linia 632: `runModuleCommand(allModules, "feature_toggles", "seed-defaults", [])` — brak `{ optional: true }`
+- `mercato.js` linia 697: `runModuleCommand(allModules, "dashboards", "enable-analytics-widgets", [...])` — brak `{ optional: true }`
+- Dla porownania `dashboards:seed-defaults` (linia 693) ma juz `{ optional: true }` i przechodzi poprawnie
+
+Aktualne zachowanie:
+- CLI bezwarunkowo probuje wywolac `seed-defaults` dla `feature_toggles` i `enable-analytics-widgets` dla `dashboards`,
+- jesli modul jest wylaczony (wykomentowany w `src/modules.ts`), resolver rzuca `Module not found` i inicjalizacja pada,
+- nie ma sposobu pominiecia tych krokow bez wlaczenia modulow albo patchowania `node_modules`.
+
+Oczekiwane zachowanie:
+- `runModuleCommand` dla `feature_toggles:seed-defaults` i `dashboards:enable-analytics-widgets` powinno miec `{ optional: true }`,
+- init powinien pomijac te kroki ze stosownym logiem jesli modul jest wylaczony,
+- host powinien moc uruchomic `yarn initialize` bez wzgledu na to, ktore opcjonalne moduly ma wlaczone.
+
+Co dzis zrobiono lokalnie:
+- workaround: tymczasowe odkomentowanie `feature_toggles` i `dashboards` w `src/modules.ts` przed init, zakomentowanie po.
+
+Rekomendacja do upstream:
+- dodac `{ optional: true }` do wywolan `runModuleCommand` dla `feature_toggles:seed-defaults` i `dashboards:enable-analytics-widgets`,
+- albo sprawdzac przed wywolaniem, czy modul jest aktywny w rejestrze modulow hosta.
+
 ## Bug 008: `server dev` automatycznie startuje scheduler nawet gdy host wyłącza moduł `scheduler`
 
 Status:

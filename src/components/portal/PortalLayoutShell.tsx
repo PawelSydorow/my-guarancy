@@ -307,7 +307,7 @@ function ShellFrame({
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/80">
           <div className="mx-auto flex h-16 w-full max-w-screen-lg items-center justify-between px-6">
             <Link href={portalHome} className="flex items-center gap-2.5 text-foreground transition hover:opacity-80" aria-label={headerTitle}>
-              <Image src="/open-mercato.svg" alt="" width={28} height={28} priority />
+              <Image src="/bremer-mark.png" alt="" width={28} height={28} priority />
               <span className="text-[15px] font-semibold tracking-tight">{headerTitle}</span>
             </Link>
             <nav aria-label="Primary" className="flex items-center gap-1">
@@ -327,7 +327,7 @@ function ShellFrame({
         <footer className="border-t border-slate-200/80 bg-white/80">
           <div className="mx-auto flex w-full max-w-screen-lg items-center justify-between px-6 py-6">
             <Link href={portalHome} className="flex items-center gap-2 text-muted-foreground transition hover:text-foreground">
-              <Image src="/open-mercato.svg" alt="" width={20} height={20} />
+              <Image src="/bremer-mark.png" alt="" width={20} height={20} />
               <span className="text-sm font-medium text-foreground">{headerTitle}</span>
             </Link>
             <p className="text-xs text-muted-foreground/60">

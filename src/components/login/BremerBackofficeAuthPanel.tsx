@@ -30,7 +30,7 @@ export default function BremerBackofficeAuthPanel({ title, description, children
               </span>
               <div className="mx-3 h-6 w-px bg-border/30" aria-hidden="true" />
               <span className="text-xs font-medium uppercase tracking-[0.32em] text-muted-foreground">
-                {badge ?? 'BACKOFFICE'}
+                {badge ?? 'POLSKA'}
               </span>
             </div>
             <div className="space-y-3">

@@ -115,7 +115,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
               Warranty operations
             </span>
             <div className="space-y-3">
-              <h2 className="text-foreground">{t('startPage.welcome.title', 'Welcome to Your Open Mercato Installation')}</h2>
+              <h2 className="text-foreground">{t('startPage.welcome.title', 'Welcome to BREMER')}</h2>
               <p className="max-w-2xl text-base leading-7 text-muted-foreground">
                 Centralize claim intake, assign project responsibility quickly, and keep BREMER teams aligned around one operational flow.
               </p>
@@ -152,7 +152,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
               <div className="space-y-3">
                 <h3 className="text-2xl font-semibold text-foreground">{t('startPage.onboarding.title', 'Launch your own workspace')}</h3>
                 <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-                  {t('startPage.onboarding.description', 'Create a tenant, organization, and administrator account in minutes. We\'ll verify your email and deliver a pre-seeded environment so you can explore Open Mercato with real data.')}
+                  {t('startPage.onboarding.description', 'Create a tenant, organization, and administrator account in minutes. We\'ll verify your email and deliver a pre-seeded environment so you can explore BREMER with real data.')}
                 </p>
                 <ul className="space-y-1 text-sm text-foreground">
                   <li>{t('startPage.onboarding.feature1', 'Automatic tenant and sample data provisioning')}</li>
@@ -211,7 +211,7 @@ export function StartPageContent({ showStartPage: initialShowStartPage, showOnbo
             disabledMessage={
               <>
                 {t('startPage.roles.superAdmin.disabledMessage1', 'Superadmin demo access is not enabled on this instance.')}{' '}
-                {t('startPage.roles.superAdmin.disabledMessage2', 'Install Open Mercato locally for full access via')}{' '}
+                {t('startPage.roles.superAdmin.disabledMessage2', 'Install BREMER locally for full access via')}{' '}
                 <a
                   href="https://github.com/open-mercato"
                   target="_blank"
