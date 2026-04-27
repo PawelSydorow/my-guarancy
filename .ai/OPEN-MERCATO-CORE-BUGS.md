@@ -275,6 +275,59 @@ Rekomendacja do upstream:
 - albo dodac portalowy odpowiednik `DataTable` bez backendowych zaleznosci typu perspectives, exports i injection handles,
 - udokumentowac portal jako osobny obszar UI, a nie tylko lzejszy backoffice.
 
+## Feature 002: portal login potrzebuje osobnego extension pointu w core auth, zeby core dostarczal formularz, a portal tylko wstrzykiwal wlasny UI
+
+Status:
+- do zgloszenia upstream
+- lokalny portalowy login dziala jako adapter, ale nadal wymaga osobnego entrypointu
+
+Obszar:
+- `@open-mercato/core`
+- `@open-mercato/ui`
+- auth login
+- portal login
+- component replacement / extension points
+
+Opis:
+- obecny login staffowy `/<login>` ma juz stabilny extension point (`section:auth.login.form` oraz `auth.login:form`),
+- portal klienta ma osobny route `/<orgSlug>/portal/login`,
+- portal potrzebuje swojego core'owego entrypointu, ktory zwraca formularz i flow auth, ale pozwala hostowi podmienic chrome, layout i branding,
+- bez takiego hooka portalowy login zaczyna zycie jako lokalny adapter, a nie jako warstwa zasilana z core, co zwieksza koszt utrzymania i ryzyko rozjazdu po aktualizacji.
+
+Po co to jest:
+- zeby core byl single source of truth dla logiki logowania, walidacji, etapow i przyszlych krokow typu 2FA,
+- zeby portal mial wlasny UI shell, ale nie musial reimplementowac formularza ani flow auth,
+- zeby aktualizacje `@open-mercato/core` dla loginu automatycznie przenosily sie na portal,
+- zeby branding, layout i kosmetyka pozostaly po stronie hosta, a nie w forku formularza.
+
+Jakie daje mozliwosci:
+- `/<login>` moze dalej korzystac z core login flow i standardowych override'ow,
+- `/<orgSlug>/portal/login` moze dostac osobny portalowy extension point z tym samym core'owym kontraktem formularza,
+- host aplikacji moze wstrzyknac wlasny UI shell, ale nie musi kopiowac logiki logowania,
+- przyszle zmiany layoutu, stanow bledow, krokow autoryzacji i inputow moga byc wdrazane w core raz i odziedziczone przez portal.
+
+Aktualny przyklad w aplikacji:
+- staff login: [login.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/node_modules/@open-mercato/core/src/modules/auth/frontend/login.tsx)
+- portal login lokalny adapter: [page.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules/portal/frontend/%5BorgSlug%5D/portal/login/page.tsx)
+- wspolny BREMER wrapper: [BremerAuthPanel.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/components/login/BremerAuthPanel.tsx)
+
+Aktualne zachowanie:
+- staffowy login korzysta z core formularza i istniejacego hooka replacement,
+- portalowy login korzysta z lokalnego adaptera i osobnego submitu do `customer_accounts/login`,
+- to dziala funkcjonalnie, ale nie daje pelnej odpornosci na zmiany core loginu,
+- bez dodatkowego portalowego extension pointu portalowe UI i flow moga dryfowac od core.
+
+Oczekiwane zachowanie:
+- core powinien wystawiac osobny, publiczny portalowy extension point dla loginu,
+- portal auth powinien moc podpiac core'owy formularz i flow bez lokalnej kopii,
+- host powinien moc dostarczyc wlasny UI shell i branding bez kopiowania logiki auth,
+- nowy extension point nie powinien psuc istniejacego staffowego loginu.
+
+Rekomendacja do upstream:
+- dodac portalowy handle typu `section:auth.portal.login.form` albo rownowazny `portal.login:form`,
+- pozwolic na oddzielny wrapper/replacement dla portal loginu, ale z tym samym kontraktem propsow co staff login,
+- utrzymac wspolny core'owy kontrakt formularza i flow, a rozdzielic tylko UI shell oraz branding hosta.
+
 ## Bug 006: brak gotowych kontrolek listy w portalu zmusza do recznej implementacji filtrowania i tabel
 
 Status:

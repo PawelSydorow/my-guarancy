@@ -8,3 +8,4 @@ Obecne specy:
 - `SPEC-003-2026-04-22-numer-zgloszenia-per-projekt.md`
 - `SPEC-004-2026-04-24-portal-klienta-zgloszenia-gwarancyjne.md`
 - `SPEC-005-2026-04-25-portal-klienta-nowe-zgloszenie-spojne-z-backoffice.md`
+- `SPEC-006-2026-04-27-portal-klienta-logowanie-spojne-z-login-i-core.md`
