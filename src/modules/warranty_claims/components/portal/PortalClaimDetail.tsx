@@ -8,7 +8,9 @@ import { Notice } from '@open-mercato/ui/primitives/Notice'
 import { EnumBadge } from '@open-mercato/ui/backend/ValueIcons'
 import { PortalCard, PortalCardDivider, PortalCardHeader, PortalStatRow } from '@open-mercato/ui/portal/components/PortalCard'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
+import { XCircle } from 'lucide-react'
 import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_BADGE_MAP } from '../../lib/statusStyles'
+import { WARRANTY_STATUS_KEYS } from '../../lib/constants'
 import type { PortalClaimRecord, PortalLookupBundle } from '../../lib/portal'
 
 type Props = {
@@ -155,6 +157,16 @@ export default function PortalClaimDetail({ orgSlug, claimId }: Props) {
           <PortalStatRow label="Data rozwiazania" value={formatDate(claim.resolvedAt, true)} />
         </PortalCard>
       </div>
+
+      {claim.statusKey === WARRANTY_STATUS_KEYS.rejected && claim.rejectionReason ? (
+        <div className="flex gap-3 rounded-none border border-status-error-border bg-status-error-bg p-4 text-status-error-text">
+          <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">Zgłoszenie odrzucone</p>
+            <p className="text-sm">Powód: {claim.rejectionReason}</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

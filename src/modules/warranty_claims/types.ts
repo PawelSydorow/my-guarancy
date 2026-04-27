@@ -18,6 +18,7 @@ export type WarrantyClaimRecord = {
   reported_at: string
   assigned_user_id: string | null
   resolved_at: string | null
+  rejection_reason: string | null
   subcontractor_id: string | null
   subcontractor_name: string | null
   subcontractor_address: string | null
@@ -49,6 +50,8 @@ export type WarrantyClaimApiRecord = Partial<WarrantyClaimRecord> & {
   reportedAt?: string
   assignedUserId?: string | null
   resolvedAt?: string | null
+  rejectionReason?: string | null
+  rejection_reason?: string | null
   subcontractorId?: string | null
   subcontractorName?: string | null
   subcontractorAddress?: string | null
@@ -80,6 +83,7 @@ export function normalizeWarrantyClaimRecord(input: WarrantyClaimApiRecord): War
     reported_at: input.reported_at ?? input.reportedAt ?? '',
     assigned_user_id: input.assigned_user_id ?? input.assignedUserId ?? null,
     resolved_at: input.resolved_at ?? input.resolvedAt ?? null,
+    rejection_reason: input.rejection_reason ?? input.rejectionReason ?? null,
     subcontractor_id: input.subcontractor_id ?? input.subcontractorId ?? null,
     subcontractor_name: input.subcontractor_name ?? input.subcontractorName ?? null,
     subcontractor_address: input.subcontractor_address ?? input.subcontractorAddress ?? null,

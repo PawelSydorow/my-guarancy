@@ -44,6 +44,7 @@ export type PortalClaimRecord = {
   statusKey: string
   reportedAt: string
   resolvedAt: string | null
+  rejectionReason: string | null
   createdAt: string
   updatedAt: string
 }
@@ -70,6 +71,7 @@ export function toPortalClaimRecord(entity: WarrantyClaim): PortalClaimRecord {
     statusKey: entity.statusKey,
     reportedAt: entity.reportedAt.toISOString(),
     resolvedAt: entity.resolvedAt ? entity.resolvedAt.toISOString() : null,
+    rejectionReason: entity.rejectionReason ?? null,
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
   }

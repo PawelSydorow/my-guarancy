@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { WARRANTY_STATUS_KEYS } from '../lib/constants'
 
 const isoDateStringSchema = z.string().datetime({ offset: true }).or(z.string().date())
 
@@ -67,6 +68,7 @@ const warrantyClaimBaseSchema = z.object({
   reported_at: isoDateStringSchema,
   assigned_user_id: requiredUuidSchema('Wybierz osobę przypisaną'),
   resolved_at: optionalNullableIsoDateStringSchema,
+  rejection_reason: z.string().nullable().optional(),
   subcontractor_id: z.string().uuid().nullable().optional(),
 }).strict()
 
@@ -75,6 +77,14 @@ export const warrantyClaimCreateSchema = warrantyClaimBaseSchema
 export const warrantyClaimUpdateSchema = warrantyClaimBaseSchema.extend({
   id: z.string().uuid(),
   assigned_user_id: z.string().uuid().nullable().optional(),
+}).superRefine((data, ctx) => {
+  if (data.status_key === WARRANTY_STATUS_KEYS.rejected && !data.rejection_reason?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['rejection_reason'],
+      message: 'Podaj powód odrzucenia',
+    })
+  }
 })
 
 export type WarrantyClaimCreateInput = z.infer<typeof warrantyClaimCreateSchema>

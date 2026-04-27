@@ -97,7 +97,7 @@ export class ProjectSubcontractor {
 @Index({ name: 'warranty_claims_claims_org_tenant_idx', properties: ['organizationId', 'tenantId'] })
 @Unique({ name: 'warranty_claims_claims_scope_project_claim_number_unique', properties: ['organizationId', 'tenantId', 'projectId', 'claimNumber'] })
 export class WarrantyClaim {
-  [OptionalProps]?: 'isActive' | 'assignedUserId' | 'resolvedAt' | 'subcontractorId' | 'subcontractorName' | 'subcontractorAddress' | 'subcontractorEmail' | 'subcontractorPhone' | 'subcontractorContactPerson' | 'createdAt' | 'updatedAt' | 'deletedAt'
+  [OptionalProps]?: 'isActive' | 'assignedUserId' | 'resolvedAt' | 'rejectionReason' | 'subcontractorId' | 'subcontractorName' | 'subcontractorAddress' | 'subcontractorEmail' | 'subcontractorPhone' | 'subcontractorContactPerson' | 'createdAt' | 'updatedAt' | 'deletedAt'
 
   @PrimaryKey({ type: 'uuid', defaultRaw: 'gen_random_uuid()' })
   id!: string
@@ -146,6 +146,9 @@ export class WarrantyClaim {
 
   @Property({ name: 'resolved_at', type: Date, nullable: true })
   resolvedAt?: Date | null
+
+  @Property({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejectionReason?: string | null
 
   @Property({ name: 'subcontractor_id', type: 'uuid', nullable: true })
   subcontractorId?: string | null
