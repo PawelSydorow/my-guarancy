@@ -309,3 +309,95 @@ Rekomendacja do upstream:
 - dodac portalowy odpowiednik listy z podstawowym zestawem kontroli,
 - wyciagnac wspolne mechanizmy filtrowania i paginacji do warstwy wspolnej,
 - traktowac portal jako osobny target UI, a nie jako wariant backoffice.
+
+## Bug 007: po zalogowaniu backend sidebar przez chwile pokazuje stare menu zanim pojawi sie docelowy stan
+
+Status:
+- otwarte
+- widoczne jako flicker / problem UX
+- bez lokalnej poprawki w core
+
+Obszar:
+- `@open-mercato/ui`
+- backend shell
+- `AppShell`
+- `BackendChromeProvider`
+- client-side bootstrap menu/widget registry
+
+Jak odtworzyc:
+1. Zaloguj sie do backendu.
+2. Obserwuj sidebar w pierwszych sekundach po zalogowaniu.
+3. Przez chwile widoczne jest starsze albo domyslne menu.
+4. Po doladowaniu chrome, widgetow i stanu klienta sidebar przechodzi w docelowy wyglad.
+
+Aktualny przyklad w aplikacji:
+- backend layout: [layout.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/app/(backend)/backend/layout.tsx)
+- shell UI: [AppShell.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/node_modules/@open-mercato/ui/src/backend/AppShell.tsx)
+- chrome provider: [BackendChromeProvider.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/node_modules/@open-mercato/ui/src/backend/BackendChromeProvider.tsx)
+- client bootstrap: [ClientBootstrap.tsx](/c:/Development/Project/MyGuarancy/my-guarancy/src/components/ClientBootstrap.tsx)
+
+Aktualne zachowanie:
+- backend layout przekazuje `adminNavApi="/api/auth/admin/nav"` do `AppShell`,
+- `BackendChromeProvider` pobiera chrome po stronie klienta,
+- `AppShell` startuje z poczatkowym stanem sidebaru i dopiero potem synchronizuje `navGroups`,
+- widgety i override'y sa rejestrowane w clientowym bootstrapie,
+- w efekcie widac krotki flash starego lub domyslnego menu po loginie.
+
+Oczekiwane zachowanie:
+- po zalogowaniu powinien od razu byc widoczny finalny stan menu,
+- nie powinno byc przejsciowego renderu starego sidebaru,
+- jesli dane chrome nie sa jeszcze gotowe, shell powinien pokazac loading/skeleton zamiast zmieniac menu po fakcie.
+
+Co dzis zrobiono lokalnie:
+- nic w core nie bylo jeszcze poprawiane,
+- problem zostal opisany jako bug UX / flicker po hydracji,
+- lokalne obejscie nie zostalo wdrozone.
+
+Rekomendacja do upstream:
+- rozwazyc SSR lub wczesniejsze podanie chrome dla backend shell,
+- albo ukrywac sidebar do czasu `isChromeReady`,
+- albo pokazac stan loading zamiast renderowac pierwszy, nietrafiony stan menu.
+
+## Bug 008: `server dev` automatycznie startuje scheduler nawet gdy host wyłącza moduł `scheduler`
+
+Status:
+- otwarte
+- lokalny workaround wdrozony w `scripts/dev-runtime.mjs`
+- bez zmiany w `@open-mercato/cli`
+
+Obszar:
+- `@open-mercato/cli`
+- `server dev`
+- `server start`
+- auto-start background services
+
+Jak odtworzyc:
+1. Zakomentuj modul `scheduler` w [src/modules.ts](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules.ts).
+2. Uruchom `yarn dev`.
+3. `server dev` dalej probuje wystartowac workerow i scheduler.
+4. Runtime konczy sie bledem `Module not found: "scheduler"`.
+
+Aktualny przyklad w aplikacji:
+- standalone dev runtime: [dev-runtime.mjs](/c:/Development/Project/MyGuarancy/my-guarancy/scripts/dev-runtime.mjs)
+- host modules: [modules.ts](/c:/Development/Project/MyGuarancy/my-guarancy/src/modules.ts)
+
+Aktualne zachowanie:
+- `server dev` i `server start` w `@open-mercato/cli` automatycznie uruchamiaja `queue:worker --all`,
+- dodatkowo uruchamiaja `scheduler start` przy lokalnej strategii kolejek,
+- host nie ma prostego przełącznika, zeby wylaczyc scheduler tylko dla tego uruchomienia,
+- przy wyłączonym module `scheduler` runtime wywala sie mimo ze sam app shell moglby dzialac dalej.
+
+Oczekiwane zachowanie:
+- host powinien moc wylaczyc auto-start scheduler i workerow bez patchowania CLI,
+- `server dev` nie powinien zakladac, ze modul `scheduler` istnieje,
+- wyłączenie pojedynczego modułu nie powinno zabijac calego runtime, jesli nie jest on krytyczny.
+
+Co dzis zrobiono lokalnie:
+- w [dev-runtime.mjs](/c:/Development/Project/MyGuarancy/my-guarancy/scripts/dev-runtime.mjs) dodano `AUTO_SPAWN_WORKERS=false` i `AUTO_SPAWN_SCHEDULER=false` dla `server dev/start`,
+- dzieki temu standalone app moze wystartowac bez modulu `scheduler`,
+- workaround jest lokalny i nie zmienia zachowania upstream CLI.
+
+Rekomendacja do upstream:
+- dodac oficjalny flag/env do wylaczania auto-spawnowania workerow i schedulera dla `server dev/start`,
+- albo nie uruchamiac schedulera, jesli odpowiadajacy modul nie jest aktywny w `src/modules.ts`,
+- albo traktowac brak `scheduler` jako niekrytyczny warunek w dev runtime zamiast twardego faila.

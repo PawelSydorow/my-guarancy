@@ -365,10 +365,21 @@ function looksLikeFailure(line) {
 
 function spawnMercato(args) {
   const resolvedSpawn = resolveSpawnCommand(command, args)
+  const runtimeCommand = args[0]
+  const runtimeSubcommand = args[1]
+  const disableBackgroundScheduler =
+    runtimeCommand === 'server'
+    && (runtimeSubcommand === 'dev' || runtimeSubcommand === 'start')
   const child = spawn(resolvedSpawn.command, resolvedSpawn.args, {
     stdio: rawPassthrough ? 'inherit' : 'pipe',
     env: {
       ...process.env,
+      ...(disableBackgroundScheduler
+        ? {
+            AUTO_SPAWN_WORKERS: 'false',
+            AUTO_SPAWN_SCHEDULER: 'false',
+          }
+        : {}),
       OM_CLI_QUIET: rawPassthrough ? process.env.OM_CLI_QUIET : '1',
       DOTENV_CONFIG_QUIET: rawPassthrough ? process.env.DOTENV_CONFIG_QUIET : 'true',
     },

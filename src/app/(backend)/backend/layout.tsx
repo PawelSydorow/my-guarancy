@@ -8,6 +8,7 @@ import { I18nProvider } from '@open-mercato/shared/lib/i18n/context'
 import { APP_VERSION } from '@open-mercato/shared/lib/version'
 import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 import { PageInjectionBoundary } from '@open-mercato/ui/backend/injection/PageInjectionBoundary'
+import { groupBackendRoutesByModule, resolveBackendChromePayload } from '@open-mercato/core/modules/auth/lib/backendChrome'
 import { DemoFeedbackWidget } from '@/components/DemoFeedbackWidget'
 import OrganizationSwitcher from '@/components/OrganizationSwitcher'
 import { BackendHeaderChrome } from '@/components/BackendHeaderChrome'
@@ -86,6 +87,15 @@ export default async function BackendLayout({
   const productName = deployEnv && deployEnv !== 'local'
     ? `${baseProductName} (${deployEnv.charAt(0).toUpperCase() + deployEnv.slice(1)})`
     : baseProductName
+  const backendChromePayload = auth
+    ? await resolveBackendChromePayload({
+        auth: auth as any,
+        locale,
+        modules: groupBackendRoutesByModule(backendRoutes),
+        translate: translate as any,
+      })
+    : null
+  const canViewSystemStatus = backendChromePayload?.grantedFeatures.includes('configs.system_status.view') ?? false
 
   const injectionContext = {
     path,
@@ -96,38 +106,40 @@ export default async function BackendLayout({
 
   return (
     <I18nProvider locale={locale} dict={dict}>
-      <AppShell
-        key={path}
-        productName={productName}
-        email={auth?.email}
-        groups={[]}
-        currentTitle={currentTitle}
-        breadcrumb={breadcrumb}
-        sidebarCollapsedDefault={initialCollapsed}
-        rightHeaderSlot={(
-          <BackendHeaderChrome
-            email={auth?.email}
-            embeddingConfigured={embeddingConfigured}
-            missingConfigMessage={missingConfigMessage}
-            tenantId={auth?.tenantId ?? null}
-            organizationId={auth?.orgId ?? null}
-          />
-        )}
-        mobileSidebarSlot={<OrganizationSwitcher compact />}
-        adminNavApi="/api/auth/admin/nav"
-        version={APP_VERSION}
-        settingsPathPrefixes={collectStaticSettingsPathPrefixes()}
-        settingsSections={[]}
-        settingsSectionTitle={translate('backend.nav.settings', 'Settings')}
-        profileSections={[]}
-        profileSectionTitle={translate('profile.page.title', 'Profile')}
-        profilePathPrefixes={[]}
-      >
-        <PageInjectionBoundary path={path} context={injectionContext}>
-          {children}
-        </PageInjectionBoundary>
-        {demoModeEnabled ? <DemoFeedbackWidget demoModeEnabled={demoModeEnabled} /> : null}
-      </AppShell>
+      <div className="backend-shell" data-can-system-status={canViewSystemStatus ? 'true' : undefined}>
+        <AppShell
+          key={path}
+          productName={productName}
+          email={auth?.email}
+          groups={[]}
+          currentTitle={currentTitle}
+          breadcrumb={breadcrumb}
+          sidebarCollapsedDefault={initialCollapsed}
+          rightHeaderSlot={(
+            <BackendHeaderChrome
+              email={auth?.email}
+              embeddingConfigured={embeddingConfigured}
+              missingConfigMessage={missingConfigMessage}
+              tenantId={auth?.tenantId ?? null}
+              organizationId={auth?.orgId ?? null}
+            />
+          )}
+          mobileSidebarSlot={<OrganizationSwitcher compact />}
+          adminNavApi="/api/auth/admin/nav"
+          version={APP_VERSION}
+          settingsPathPrefixes={collectStaticSettingsPathPrefixes()}
+          settingsSections={[]}
+          settingsSectionTitle={translate('backend.nav.settings', 'Settings')}
+          profileSections={[]}
+          profileSectionTitle={translate('profile.page.title', 'Profile')}
+          profilePathPrefixes={[]}
+        >
+          <PageInjectionBoundary path={path} context={injectionContext}>
+            {children}
+          </PageInjectionBoundary>
+          {demoModeEnabled ? <DemoFeedbackWidget demoModeEnabled={demoModeEnabled} /> : null}
+        </AppShell>
+      </div>
     </I18nProvider>
   )
 }
