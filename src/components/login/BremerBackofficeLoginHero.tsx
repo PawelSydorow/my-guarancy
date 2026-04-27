@@ -1,3 +1,5 @@
+'use client'
+
 import { Building2, ShieldCheck } from 'lucide-react'
 
 export default function BremerBackofficeLoginHero() {

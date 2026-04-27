@@ -77,73 +77,59 @@ export default function PortalLoginPage({ params }: Props) {
     [email, fallbackError, orgSlug, password, t, tenant.organizationId, tenant.tenantId],
   )
 
-  if (tenant.loading) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-background px-4">
-        <Spinner />
-      </div>
-    )
-  }
-
-  if (tenant.error) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md">
-          <Notice variant="error">{t('portal.org.invalid', 'Organization not found.')}</Notice>
-        </div>
-      </div>
-    )
-  }
+  const isDisabled = submitting || tenant.loading
 
   return (
-    <div className="min-h-svh flex items-center justify-center bg-background p-4">
-      <div data-slot="card" className="w-full">
-        <BremerLoginSection>
-          <form className="grid gap-3" onSubmit={handleSubmit} noValidate data-auth-ready>
-            {error ? (
-              <div
-                className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700"
-                role="alert"
-                aria-live="polite"
-              >
-                {error}
+    <div>
+      <BremerLoginSection>
+          {tenant.error ? (
+            <Notice variant="error">{t('portal.org.invalid', 'Organization not found.')}</Notice>
+          ) : (
+            <form className="grid gap-3" onSubmit={handleSubmit} noValidate data-auth-ready>
+              {error ? (
+                <div
+                  className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-sm text-red-700"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {error}
+                </div>
+              ) : null}
+
+              <div className="grid gap-1">
+                <Label htmlFor="portal-login-email">{t('portal.login.email', 'Email')}</Label>
+                <Input
+                  id="portal-login-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  placeholder={t('portal.login.email.placeholder', 'Wpisz adres e-mail')}
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  disabled={isDisabled}
+                />
               </div>
-            ) : null}
 
-            <div className="grid gap-1">
-              <Label htmlFor="portal-login-email">{t('portal.login.email', 'Email')}</Label>
-              <Input
-                id="portal-login-email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder={t('portal.login.email.placeholder', 'Wpisz adres e-mail')}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                disabled={submitting}
-              />
-            </div>
+              <div className="grid gap-1">
+                <Label htmlFor="portal-login-password">{t('portal.login.password', 'Password')}</Label>
+                <Input
+                  id="portal-login-password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder={t('portal.login.password.placeholder', 'Wpisz haslo')}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={isDisabled}
+                />
+              </div>
 
-            <div className="grid gap-1">
-              <Label htmlFor="portal-login-password">{t('portal.login.password', 'Password')}</Label>
-              <Input
-                id="portal-login-password"
-                type="password"
-                autoComplete="current-password"
-                required
-                placeholder={t('portal.login.password.placeholder', 'Wpisz haslo')}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                disabled={submitting}
-              />
-            </div>
-
-            <Button type="submit" disabled={submitting} className="mt-2 h-10">
-              {submitting ? t('portal.login.submitting', 'Signing in...') : t('portal.login.submit', 'Sign In')}
-            </Button>
-          </form>
+              <Button type="submit" disabled={isDisabled} className="mt-2 h-10">
+                {tenant.loading ? <Spinner className="size-4" /> : submitting ? t('portal.login.submitting', 'Signing in...') : t('portal.login.submit', 'Sign In')}
+              </Button>
+            </form>
+          )}
         </BremerLoginSection>
-      </div>
     </div>
   )
 }

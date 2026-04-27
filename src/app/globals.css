@@ -1016,49 +1016,6 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
 }
 
 @layer bremer-login {
-  body:has(form[data-auth-ready]) {
-    background-image: none;
-    background-color: var(--background);
-    font-family: var(--font-inter), var(--font-sans);
-  }
-
-  body[data-bremer-auth-page^="reset"] {
-    background-image: none;
-    background-color: var(--background);
-    font-family: var(--font-inter), var(--font-sans);
-  }
-
-  body:has(form[data-auth-ready]) .min-h-svh.flex.items-center.justify-center {
-    position: relative;
-    padding: 0;
-    align-items: stretch;
-    justify-content: stretch;
-    overflow: hidden;
-  }
-
-  body[data-bremer-auth-page^="reset"] .min-h-svh.flex.items-center.justify-center.p-4 {
-    position: relative;
-    padding: 0;
-    align-items: stretch;
-    justify-content: stretch;
-    overflow: hidden;
-  }
-
-  body:has(form[data-auth-ready]) .min-h-svh.flex.items-center.justify-center::before {
-    content: "";
-    display: block;
-    flex: 0 0 50%;
-    min-height: 100svh;
-    background-image: var(--bremer-login-bg, url("/login-bg-magnice.jpg"));
-    background-size: cover;
-    background-position: 55% 58%;
-    background-repeat: no-repeat;
-  }
-
-  body[data-bremer-auth-page="backoffice"]:has(form[data-auth-ready]) .min-h-svh.flex.items-center.justify-center::before {
-    background-image: url("/login-bg-backend.jpg");
-    background-position: 35% 58%;
-  }
 
   body[data-bremer-auth-page^="reset"] .min-h-svh.flex.items-center.justify-center.p-4::before {
     content: "";
@@ -1069,24 +1026,6 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     background-size: cover;
     background-position: 35% 58%;
     background-repeat: no-repeat;
-  }
-
-  body:has(form[data-auth-ready]) .min-h-svh.flex.items-center.justify-center > [data-slot="card"] {
-    position: relative;
-    z-index: 1;
-    flex: 0 0 50%;
-    min-height: 100svh;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    background: var(--background);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    overflow-y: auto;
-    padding: 4rem 3rem;
-    max-width: none;
   }
 
   body[data-bremer-auth-page^="reset"] .min-h-svh.flex.items-center.justify-center.p-4 > [data-slot="card"] {
@@ -1106,16 +1045,6 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
     padding: 4rem 3rem;
     gap: 0;
     max-width: none;
-  }
-
-  body:has(form[data-auth-ready]) [data-slot="card-header"] {
-    display: none;
-  }
-
-  body:has(form[data-auth-ready]) [data-slot="card-content"] {
-    padding: 0;
-    width: 100%;
-    max-width: 28rem;
   }
 
   body[data-bremer-auth-page^="reset"] [data-slot="card-header"] {
@@ -1417,12 +1346,6 @@ html:not(.dark) aside:has(nav[data-testid="sidebar"]) a.bg-background.border.sha
 
     body[data-bremer-auth-page^="reset"] .min-h-svh.flex.items-center.justify-center.p-4::before {
       display: none;
-    }
-
-    body:has(form[data-auth-ready]) .min-h-svh.flex.items-center.justify-center > [data-slot="card"] {
-      flex: 1 1 100%;
-      min-height: 100svh;
-      padding: 2rem 1.5rem;
     }
 
     body[data-bremer-auth-page^="reset"] .min-h-svh.flex.items-center.justify-center.p-4 > [data-slot="card"] {

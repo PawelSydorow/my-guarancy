@@ -1,3 +1,5 @@
+'use client'
+
 import { Sparkles, Warehouse } from 'lucide-react'
 
 export default function BremerLoginHero() {
