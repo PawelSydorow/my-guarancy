@@ -1,5 +1,6 @@
 [
   { "value": "oczekuje", "label": "Oczekuje" },
-  { "value": "w_trakcie", "label": "W trakcie" },
-  { "value": "zakonczone", "label": "Zakonczone" }
+  { "value": "przekazana_nieusunięta", "label": "Przekazana nieusunięta" },
+  { "value": "usunięta", "label": "Usunięta" },
+  { "value": "odrzucona", "label": "Odrzucona" }
 ]

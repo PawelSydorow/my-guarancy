@@ -8,10 +8,12 @@ export const WARRANTY_DICTIONARY_KEYS = {
 
 export const WARRANTY_STATUS_KEYS = {
   pending: 'oczekuje',
-  inProgress: 'w_trakcie',
-  completed: 'zakonczone',
+  transferredUnresolved: 'przekazana_nieusunięta',
+  resolved: 'usunięta',
+  rejected: 'odrzucona',
 } as const
 
+export const WARRANTY_STATUS_ORDER = ['oczekuje', 'przekazana_nieusunięta', 'usunięta', 'odrzucona'] as const
 export const WARRANTY_PRIORITY_ORDER = ['niski', 'sredni', 'wysoki', 'krytyczny'] as const
 export const WARRANTY_DEFAULT_CREATE_STATUS_KEY = WARRANTY_STATUS_KEYS.pending
 export const WARRANTY_DEFAULT_CREATE_PRIORITY_KEY = WARRANTY_PRIORITY_ORDER[1]

@@ -44,7 +44,7 @@ describe('portal warranty claims contract', () => {
       issueDescription: 'Opis usterki przekraczajacy minimalna dlugosc.',
       locationText: 'Klatka A',
       categoryKey: 'elewacja',
-      statusKey: 'zakonczone',
+      statusKey: 'usunięta',
     })).toThrow()
   })
 
@@ -62,7 +62,7 @@ describe('portal warranty claims contract', () => {
       locationText: 'Klatka A',
       categoryKey: 'elewacja',
       projectId: '11111111-1111-4111-8111-111111111111',
-      statusKey: 'zakonczone',
+      statusKey: 'usunięta',
     })).toThrow()
   })
 })

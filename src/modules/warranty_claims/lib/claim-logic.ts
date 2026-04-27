@@ -267,7 +267,7 @@ async function assertAssignedUser(
 }
 
 function resolveResolvedAt(statusKey: string, resolvedAtIso: string | null): string | null {
-  if (statusKey === WARRANTY_STATUS_KEYS.completed && !resolvedAtIso) {
+  if (statusKey === WARRANTY_STATUS_KEYS.resolved && !resolvedAtIso) {
     return new Date().toISOString()
   }
   return resolvedAtIso
