@@ -234,6 +234,52 @@ Rekomendacja do upstream:
 - nie zamykac listy tylko dlatego, ze input traci focus podczas wyboru z listy,
 - pokazac loading stan natychmiast po aktywacji pola, jesli `loadSuggestions` jest asynchroniczne.
 
+## Bug 006: `yarn dev` na Windows zostawia osierocone procesy Node i blokuje porty
+
+Status:
+- otwarte
+- lokalny workaround wdrozony w dev runnerze
+- wymaga dopracowania cleanupu procesow potomnych
+
+Obszar:
+- `scripts/dev.mjs`
+- `scripts/dev-runtime.mjs`
+- uruchamianie `mercato server dev`, `next dev` i watcherow `generate watch`
+
+Jak odtworzyc:
+1. Uruchom `yarn dev` na Windows.
+2. Przerwij proces `Ctrl+C` albo zamknij terminal w trakcie startupu.
+3. Uruchom `yarn dev` ponownie.
+4. Czasem jeden z portow pozostaje zajety, a w `Get-Process node` widac stare procesy `node.exe`.
+5. Dev stack przycina sie albo zatrzymuje na starcie przez `EADDRINUSE`.
+
+Aktualny przyklad w aplikacji:
+- dev launcher: [scripts/dev.mjs](/c:/Development/Project/MyGuarancy/my-guarancy/scripts/dev.mjs)
+- runtime launcher: [scripts/dev-runtime.mjs](/c:/Development/Project/MyGuarancy/my-guarancy/scripts/dev-runtime.mjs)
+- objawy: zajety port `3000`, `4000` albo osierocone watchery `mercato generate watch --skip-initial`
+
+Aktualne zachowanie:
+- `yarn dev` odpala kilka procesow potomnych jednoczesnie,
+- na Windowsie samo `child.kill('SIGTERM')` nie zawsze ubija caly pipeline,
+- po przerwaniu zostaja procesy potomne, ktore dalej trzymaja porty i zasoby plikow,
+- kolejne uruchomienie moze sie zatrzymac lub przechodzic w retry loop.
+
+Oczekiwane zachowanie:
+- `Ctrl+C` powinno zamykac caly dev stack bez osieroconych procesow,
+- porty powinny byc zwalniane deterministycznie po zatrzymaniu,
+- ponowny start `yarn dev` nie powinien wymagac recznego czyszczenia `node.exe`.
+
+Co dzis zrobiono lokalnie:
+- w `scripts/dev.mjs` i `scripts/dev-runtime.mjs` dodano twardy cleanup drzewa procesow na Windows przez `taskkill /t /f`,
+- fallback nadal uzywa zwyklego `kill()` poza Windows,
+- to ogranicza zostawianie osieroconych procesow, ale nadal warto dopracowac shutdown path i obserwowac wszystkie child processy.
+
+Rekomendacja do upstream:
+- ujednolicic shutdown dla wszystkich child processow w dev runnerze,
+- dodac jawny cleanup drzewa procesow na Windows jako standard,
+- rozwazyc tryb `dev:clean` albo preflight, ktory ubija stare process trees przed startem,
+- ograniczyc liczbe watcherow uruchamianych rownolegle, jesli nie sa potrzebne do codziennego developmentu.
+
 ## Feature 001: portal klienta jako osobny obszar potrzebuje odpowiednika backendowego `DataTable`
 
 Status:

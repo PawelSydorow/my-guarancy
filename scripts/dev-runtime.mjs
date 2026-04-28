@@ -399,6 +399,28 @@ function spawnMercato(args) {
   return child
 }
 
+function killProcessTree(child, signal = 'SIGTERM') {
+  if (!child || child.killed) return
+  if (process.platform === 'win32' && typeof child.pid === 'number') {
+    try {
+      const killer = spawn('taskkill', ['/pid', String(child.pid), '/t', '/f'], {
+        stdio: 'ignore',
+        windowsHide: true,
+      })
+      killer.unref?.()
+      return
+    } catch {
+      // Fall back to a normal kill below.
+    }
+  }
+
+  try {
+    child.kill(signal)
+  } catch {
+    // Ignore shutdown errors.
+  }
+}
+
 function waitForExit(child) {
   return new Promise((resolve) => {
     child.on('exit', (code, signal) => {
@@ -1012,13 +1034,13 @@ function shutdown(exitCode = 0) {
   }
 
   for (const child of alive) {
-    child.kill('SIGTERM')
+    killProcessTree(child, 'SIGTERM')
   }
 
   setTimeout(() => {
     for (const child of children) {
       if (!child.killed) {
-        child.kill('SIGKILL')
+        killProcessTree(child, 'SIGKILL')
       }
     }
     process.exit(exitCode)
