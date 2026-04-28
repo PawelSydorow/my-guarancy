@@ -10,7 +10,7 @@ import { Notice } from '@open-mercato/ui/primitives/Notice'
 import { Textarea } from '@open-mercato/ui/primitives/textarea'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import type { CrudFormGroup } from '@open-mercato/ui/backend/CrudForm'
-import { ATTACHMENTS_LIBRARY_ENTITY_ID, createDraftAttachmentRecordId, transferDraftAttachments } from '../../lib/attachments'
+import { DRAFT_WARRANTY_CLAIM_ATTACHMENT_ENTITY_ID, createDraftAttachmentRecordId, transferDraftAttachments } from '../../lib/attachments'
 import { WARRANTY_DEFAULT_CREATE_PRIORITY_KEY } from '../../lib/constants'
 import { WARRANTY_PRIORITY_SEGMENT_CLASSES } from '../../lib/statusStyles'
 import { portalClaimCreateSchema, type PortalLookupBundle } from '../../lib/portal'
@@ -123,6 +123,7 @@ function getStringValue(values: Record<string, unknown>, key: keyof FormValues) 
 export default function PortalClaimCreateForm({ orgSlug }: Props) {
   const router = useRouter()
   const [draftAttachmentRecordId] = React.useState(createDraftAttachmentRecordId)
+  const [draftAttachmentsChanged, setDraftAttachmentsChanged] = React.useState(false)
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -170,10 +171,12 @@ export default function PortalClaimCreateForm({ orgSlug }: Props) {
       }
 
       let detailHref = `/${orgSlug}/portal/warranty-claims/${claimId}`
-      try {
-        await transferDraftAttachments(draftAttachmentRecordId, claimId)
-      } catch {
-        detailHref = `${detailHref}?attachments=partial`
+      if (draftAttachmentsChanged) {
+        try {
+          await transferDraftAttachments(draftAttachmentRecordId, claimId)
+        } catch {
+          detailHref = `${detailHref}?attachments=partial`
+        }
       }
 
       router.push(detailHref)
@@ -182,7 +185,7 @@ export default function PortalClaimCreateForm({ orgSlug }: Props) {
     } finally {
       setSubmitting(false)
     }
-  }, [draftAttachmentRecordId, orgSlug, router])
+  }, [draftAttachmentRecordId, draftAttachmentsChanged, orgSlug, router])
 
   const groups = React.useMemo<CrudFormGroup[]>(() => [
     {
@@ -285,10 +288,11 @@ export default function PortalClaimCreateForm({ orgSlug }: Props) {
                   <div className="space-y-3">
                     <div className="text-sm font-medium text-foreground">Załączniki</div>
                     <AttachmentsSection
-                      entityId={ATTACHMENTS_LIBRARY_ENTITY_ID}
+                      entityId={DRAFT_WARRANTY_CLAIM_ATTACHMENT_ENTITY_ID}
                       recordId={draftAttachmentRecordId}
                       showHeader={false}
                       compact
+                      onChanged={() => setDraftAttachmentsChanged(true)}
                       className={[
                         'space-y-1.5',
                         '[&_.grid]:gap-1.5',

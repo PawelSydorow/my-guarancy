@@ -17,7 +17,7 @@ import {
   WARRANTY_DEFAULT_CREATE_STATUS_KEY,
   WARRANTY_STATUS_KEYS,
 } from '../lib/constants'
-import { ATTACHMENTS_LIBRARY_ENTITY_ID, createDraftAttachmentRecordId, transferDraftAttachments } from '../lib/attachments'
+import { DRAFT_WARRANTY_CLAIM_ATTACHMENT_ENTITY_ID, createDraftAttachmentRecordId, transferDraftAttachments } from '../lib/attachments'
 import { WARRANTY_PRIORITY_SEGMENT_CLASSES, WARRANTY_STATUS_SEGMENT_CLASSES } from '../lib/statusStyles'
 import { warrantyClaimCreateSchema, warrantyClaimUpdateSchema } from '../data/validators'
 
@@ -635,7 +635,7 @@ export default function WarrantyClaimForm({
                     : 'Pliki zapisują się od razu po dodaniu lub usunięciu. Zmiany formularza nadal wymagają osobnego zapisu.'}
                 </p>
                 <AttachmentsSection
-                  entityId={mode === 'create' ? ATTACHMENTS_LIBRARY_ENTITY_ID : WARRANTY_CLAIM_ENTITY_ID}
+                  entityId={mode === 'create' ? DRAFT_WARRANTY_CLAIM_ATTACHMENT_ENTITY_ID : WARRANTY_CLAIM_ENTITY_ID}
                   recordId={mode === 'create' ? draftAttachmentRecordId : claimId ?? null}
                   showHeader={false}
                   compact

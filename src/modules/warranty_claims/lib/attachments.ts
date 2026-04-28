@@ -1,6 +1,6 @@
 import { WARRANTY_CLAIM_ENTITY_ID } from './constants'
 
-export const ATTACHMENTS_LIBRARY_ENTITY_ID = 'attachments:library'
+export const DRAFT_WARRANTY_CLAIM_ATTACHMENT_ENTITY_ID = WARRANTY_CLAIM_ENTITY_ID
 
 export function createDraftAttachmentRecordId() {
   const randomPart = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -20,15 +20,14 @@ async function fetchAttachmentIds(entityId: string, recordId: string) {
 }
 
 export async function transferDraftAttachments(draftRecordId: string, claimId: string) {
-  const attachmentIds = await fetchAttachmentIds(ATTACHMENTS_LIBRARY_ENTITY_ID, draftRecordId)
+  const attachmentIds = await fetchAttachmentIds(DRAFT_WARRANTY_CLAIM_ATTACHMENT_ENTITY_ID, draftRecordId)
   if (!attachmentIds.length) return
   const response = await fetch('/api/attachments/transfer', {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      sourceEntityId: ATTACHMENTS_LIBRARY_ENTITY_ID,
-      targetEntityId: WARRANTY_CLAIM_ENTITY_ID,
+      entityId: DRAFT_WARRANTY_CLAIM_ATTACHMENT_ENTITY_ID,
       attachmentIds,
       fromRecordId: draftRecordId,
       toRecordId: claimId,

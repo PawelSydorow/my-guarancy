@@ -138,13 +138,13 @@ describe('WarrantyClaimForm attachments', () => {
     }) as jest.Mock
   })
 
-  it('uses temporary attachments library on create', async () => {
+  it('uses temporary warranty claim attachments record on create', async () => {
     render(<WarrantyClaimForm mode="create" />)
 
     await waitFor(() => {
       expect(screen.queryByText('Zalaczniki')).not.toBeNull()
       expect(screen.getByDisplayValue('Nadany automatycznie po zapisie')).not.toBeNull()
-      expect(screen.getByTestId('attachments-section').textContent).toContain('attachments:library:warranty-claim-create::compact')
+      expect(screen.getByTestId('attachments-section').textContent).toContain('warranty_claims:claim:warranty-claim-create::compact')
       expect(screen.getByTestId('attachments-section').getAttribute('data-classname')).toContain('object-cover')
     })
   })
@@ -276,14 +276,12 @@ describe('WarrantyClaimForm attachments', () => {
       if (url === '/api/attachments/transfer') {
         expect(init?.method).toBe('POST')
         const body = JSON.parse(String(init?.body ?? '{}')) as {
-          sourceEntityId?: string
-          targetEntityId?: string
+          entityId?: string
           fromRecordId?: string
           toRecordId?: string
           attachmentIds?: string[]
         }
-        expect(body.sourceEntityId).toBe('attachments:library')
-        expect(body.targetEntityId).toBe('warranty_claims:claim')
+        expect(body.entityId).toBe('warranty_claims:claim')
         expect(body.toRecordId).toBe('claim-1')
         expect(body.attachmentIds).toEqual(['11111111-1111-4111-8111-111111111111'])
         expect(body.fromRecordId).toContain('warranty-claim-create:')
@@ -311,7 +309,7 @@ describe('WarrantyClaimForm attachments', () => {
       expect(submittedPayload.priority_key).toBe('sredni')
       expect(submittedPayload.assigned_user_id).toBeNull()
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/attachments?entityId=attachments%3Alibrary&recordId=warranty-claim-create%3A'),
+        expect.stringContaining('/api/attachments?entityId=warranty_claims%3Aclaim&recordId=warranty-claim-create%3A'),
         expect.objectContaining({ credentials: 'include' }),
       )
       expect(global.fetch).toHaveBeenCalledWith(

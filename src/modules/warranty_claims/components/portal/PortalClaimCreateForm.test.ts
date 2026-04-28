@@ -96,7 +96,7 @@ describe('PortalClaimCreateForm', () => {
     }))
     expect(attachmentsSectionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        entityId: 'attachments:library',
+        entityId: 'warranty_claims:claim',
         recordId: expect.stringContaining('warranty-claim-create:'),
         compact: true,
       }),
