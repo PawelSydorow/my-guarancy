@@ -48,11 +48,15 @@ export default async function RootLayout({
         <Script id="om-theme-init" strategy="beforeInteractive">{`
           (function() {
             try {
+              /*
               var stored = localStorage.getItem('om-theme');
               var theme = stored === 'dark' ? 'dark'
                 : stored === 'light' ? 'light'
                 : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
               if (theme === 'dark') document.documentElement.classList.add('dark');
+              */
+              localStorage.setItem('om-theme', 'light');
+              document.documentElement.classList.remove('dark');
             } catch (e) {}
           })();
         `}</Script>
