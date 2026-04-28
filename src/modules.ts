@@ -39,7 +39,7 @@ export const enabledModules: ModuleEntry[] = [
  // { id: 'messages', from: '@open-mercato/core' },
  // { id: 'ai_assistant', from: '@open-mercato/ai-assistant' },
   { id: 'translations', from: '@open-mercato/core' },
- // { id: 'scheduler', from: '@open-mercato/scheduler' },
+  { id: 'scheduler', from: '@open-mercato/scheduler' },
  // { id: 'inbox_ops', from: '@open-mercato/core' },
  // { id: 'payment_gateways', from: '@open-mercato/core' },
  // { id: 'checkout', from: '@open-mercato/checkout' },
